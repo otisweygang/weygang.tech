@@ -3,34 +3,8 @@
   is done here in CSS, app.js never measures or scales anything.
 */
 
-/* tokens — dark terminal */
+/* tokens — light default */
 :root {
-  --bg:        #0d1117;   /* editor black */
-  --panel:     #12171f;   /* window body */
-  --bar:       #161c26;   /* titlebars — one step up */
-  --sel:       #17241d;   /* selected card tint (faint green wash) */
-  --ink:       #d7dbe0;   /* off-white text */
-  --ink-dim:   #8b929e;   /* muted */
-  --ink-faint: #5c6470;   /* captions, glyphs */
-
-  --accent:    #3f9b57;   /* muted phosphor green */
-  --rose:      #e0708a;   /* link hover */
-
-  --hair:      #262d38;   /* the single hairline colour */
-  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.45);
-
-  --gutter: 6px;
-  --pad: clamp(14px, 2vw, 26px);
-  --split: 54%;              /* detail window's share once open */
-  /* the virtual desktop the preview renders at lives on .screen (§7) */
-
-  --serif:   "EB Garamond", Georgia, serif;
-  --display: "Playfair Display", Georgia, serif;
-  --mono:    "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-}
-
-/* light terminal — same layout, inverted palette */
-:root[data-theme="light"] {
   --bg:        #f4f4f2;
   --panel:     #ffffff;
   --bar:       #ebebe7;
@@ -44,6 +18,33 @@
 
   --hair:      #dcdcd8;
   --shadow:    0 1px 2px rgba(17,18,20,.04), 0 6px 20px rgba(17,18,20,.06);
+
+  --gutter: 6px;
+  --pad: clamp(14px, 2vw, 26px);
+  --split: 54%;              /* detail window's share once open */
+  /* the virtual desktop the preview renders at lives on .screen (§7) */
+
+  /* one typeface sitewide — terminal mono, no serif, no italics */
+  --mono:    "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --serif:   var(--mono);
+  --display: var(--mono);
+}
+
+/* dark terminal — same layout, inverted palette */
+:root[data-theme="dark"] {
+  --bg:        #0d1117;   /* editor black */
+  --panel:     #12171f;   /* window body */
+  --bar:       #161c26;   /* titlebars — one step up */
+  --sel:       #17241d;   /* selected card tint (faint green wash) */
+  --ink:       #d7dbe0;   /* off-white text */
+  --ink-dim:   #8b929e;
+  --ink-faint: #5c6470;
+
+  --accent:    #3f9b57;   /* muted phosphor green */
+  --rose:      #e0708a;
+
+  --hair:      #262d38;
+  --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.45);
 }
 
 
@@ -60,6 +61,8 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+/* no italics anywhere — keep the terminal look for <em>, <i>, comments, etc. */
+i, em, cite, dfn, address { font-style: normal; }
 [hidden] { display: none !important; }
 
 /* frame */
@@ -93,19 +96,20 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .theme-toggle:hover { color: var(--ink); }
 
-/* dark mode -> show the moon; light mode -> show the sun */
-.theme-toggle .icon-moon { display: block; }
-.theme-toggle .icon-sun { display: none; }
-:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
-:root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
+/* light mode -> show the sun; dark mode -> show the moon */
+.theme-toggle .icon-sun { display: block; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 
 .gh { border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; }
 .gh:hover { color: var(--rose); border-color: var(--rose); }
 .bar-bottom .spacer { flex: 1; }
 .utc { color: var(--ink); letter-spacing: 0.03em; }
 
-/* stage: the tiling grid. Closed -> one column; split/wide -> the detail
-   window slides in as the columns transition. */
+/* stage: the tiling grid. On load it's one full-width column — the landing
+   grid. Picking a card adds .is-split and the preview slides in as the
+   columns transition; .is-wide narrows the list further. */
 .stage {
   min-height: 0;
   display: grid;
@@ -124,8 +128,15 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .stage.is-split.is-wide {
   grid-template-columns: var(--list-min) calc(100% - var(--list-min));
 }
-.stage.is-wide .win-list .nav-cards { padding-inline: 7px; }
-.stage.is-wide .win-list .nav-grid { grid-template-columns: 1fr; }
+
+/* once split, the landing grid becomes a single column of the same cards —
+   just without the guided intro or the logo panels */
+.stage.is-split .win-list .nav-intro { display: none; }
+.stage.is-split .win-list .nav-cards { padding: 12px; }
+.stage.is-split .win-list .nav-grid { grid-template-columns: 1fr; gap: 8px; }
+.stage.is-split .win-list .nav-card-logo { display: none; }
+.stage.is-split .win-list .nav-group { max-width: none; }
+.stage.is-split .win-list .nav-group + .nav-group { margin-top: 18px; }
 .stage.is-wide .win-list .win-count { display: none; }
 
 /* windows */
@@ -142,11 +153,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .win-bar {
   flex-shrink: 0;
+  height: 28px;              /* fixed so the list and detail bars always match */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 8px;
+  padding: 0 8px;
   background: var(--bar);
   border-bottom: 1px solid var(--hair);
   font-family: var(--mono);
@@ -167,105 +179,168 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .win-tab:hover { color: var(--ink); }
 .win-tab.is-active { color: var(--accent); border-color: transparent; background: transparent; }
-.win-expand,
-.win-close {
-  font-family: var(--mono);
-  font-size: 0.68rem;
+
+/* titlebar icon buttons — expand / close. Inline SVG, sized to sit on the
+   same optical line as the mono tabs. */
+.win-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
   color: var(--ink-faint);
-  padding: 1px 3px;
+  transition: color .14s;
 }
+.win-icon .ic { display: block; }
 .win-expand:hover { color: var(--accent); }
 .win-close:hover { color: var(--rose); }
-.stage.is-wide .win-expand { color: var(--accent); }   /* lit while expanded */
 
-/* the card list — Websites and Coding as 2-column grids, CV full-width */
+/* expand button swaps its glyph by state: arrows-out by default, arrows-in
+   while the pane is expanded (and lit accent to show it's active). */
+.win-expand .ic-collapse { display: none; }
+.stage.is-wide .win-expand { color: var(--accent); }
+.stage.is-wide .win-expand .ic-expand   { display: none; }
+.stage.is-wide .win-expand .ic-collapse { display: block; }
+
+/* the landing view — a guided intro, then a grid of gallery cards per group */
 .nav-cards {
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 12px 18px;
+  padding: clamp(20px, 4vw, 44px) clamp(18px, 4vw, 48px) 40px;
   scrollbar-width: thin;
   scrollbar-color: var(--hair) transparent;
 }
 .nav-cards::-webkit-scrollbar { width: 7px; }
 .nav-cards::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 0; }
 
-.nav-group + .nav-group { margin-top: 24px; }
+.nav-intro {
+  max-width: 1040px;
+  margin: 0 0 34px;
+}
+.nav-hello {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.nav-prompt {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  margin-top: 8px;
+}
+
+.nav-group {
+  max-width: 1040px;
+}
+.nav-group + .nav-group { margin-top: 30px; }
 .nav-group-title {
   font-family: var(--mono);
   font-size: 0.62rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-faint);
-  margin-bottom: 11px;
+  margin-bottom: 12px;
 }
 
-/* two columns where there's room, one when the pane gets tight */
 .nav-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
 }
-.nav-column { display: grid; gap: 8px; }
 
-/* language sub-headings break the grid flow onto their own row */
-.nav-sub {
-  grid-column: 1 / -1;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  color: var(--accent);
-  margin: 6px 0 1px;
-}
-.nav-sub:first-child { margin-top: 0; }
-
-/* every card is a single <button>, uniform across sections */
+/* one card = one button: an optional logo panel, then name + "what it is" */
 .nav-card {
   display: flex;
   flex-direction: column;
-  gap: 7px;
   text-align: left;
-  padding: 12px 13px;
   border: 1px solid var(--hair);
   background: var(--panel);
-  transition: border-color .14s, background .14s;
+  overflow: hidden;
+  transition: border-color .14s, transform .14s;
 }
-.nav-card:hover { border-color: var(--ink-faint); }
-.nav-card.is-selected { border-color: var(--accent); background: var(--sel); }
+.nav-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.nav-card.is-selected { border-color: var(--accent); }
 
+/* logo lockup panel — the window surface colour, white in light / near-black
+   in dark, so a logo sits on the same ground as the card body */
+.nav-card-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 104px;
+  padding: 14px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--hair);
+}
+.nav-card-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* bonez and palio are pure black artwork — flip them onto the dark panel */
+:root[data-theme="dark"] .nav-card[data-slug="bonez"] .nav-card-logo img,
+:root[data-theme="dark"] .nav-card[data-slug="gentle-hand"] .nav-card-logo img {
+  filter: invert(1);
+}
+
+/* icahd is a colour brick logo with a dark text element — an invert would
+   wreck the palette, so keep its panel white even in dark mode */
+:root[data-theme="dark"] .nav-card[data-slug="icahd"] .nav-card-logo {
+  background: #ffffff;
+}
+/* the bonez mark is near-square, so it comes out tiny next to the wide
+   wordmarks — give it the full panel height and no side padding */
+.nav-card[data-slug="bonez"] .nav-card-logo { padding: 6px 10px; }
+
+.nav-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 13px 13px;
+}
 .nav-card-name {
   font-family: var(--display);
-  font-size: calc(1.02rem * var(--name-scale, 1));
+  font-size: 1rem;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--ink);
-  white-space: nowrap;
+  white-space: nowrap;   /* it's a URL — fitCardNames() shrinks it to fit */
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .nav-card.is-selected .nav-card-name { color: var(--accent); }
-
-.nav-card-desc {
+.nav-card-what {
   font-family: var(--mono);
-  font-size: 0.7rem;
-  line-height: 1.5;
+  font-size: 0.64rem;
+  line-height: 1.45;
   color: var(--ink-dim);
 }
 
-.nav-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.nav-tag {
-  padding: 0 5px;
-  border: 1px solid var(--hair);
+/* stack tags — small mono chips under the "what it is" line */
+.nav-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.nav-card-tags .tag {
   font-family: var(--mono);
-  font-size: 0.62rem;
-  color: var(--accent);
+  font-size: 0.56rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 2px 6px;
+  border: 1px solid var(--hair);
 }
 
-.nav-card-links { display: flex; flex-wrap: wrap; gap: 4px 12px; }
-.nav-link {
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  color: var(--ink-faint);
-}
-.nav-link::before { content: "› "; color: var(--accent); }
+/* rail state: same bordered card, a touch more compact, no hover lift */
+.stage.is-split .win-list .nav-card:hover { transform: none; }
+.stage.is-split .win-list .nav-card.is-selected { background: var(--sel); }
+.stage.is-split .win-list .nav-card-body { padding: 9px 11px; gap: 3px; }
+.stage.is-split .win-list .nav-card-name { font-size: 0.92rem; }
+.stage.is-split .win-list .nav-card-tags { display: none; }  /* too tight in the rail */
 
 /* detail body: preview / source. Both views stay in the flow; the split
    animates by moving flex-basis between them (0 / 50% / 100%) rather than
@@ -347,6 +422,29 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   overflow: hidden;
   container-type: size;
 }
+/* rendering a README instead of framing a site: no centring, no padding, and
+   a column flex box so the .readme child can be a bounded scroll region */
+.view-preview.has-readme {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  container-type: normal;
+}
+/* a PDF (or other document) fills the pane edge to edge, no desktop scaler */
+.view-preview.has-doc {
+  padding: 0;
+  display: block;
+  container-type: normal;
+}
+.doc-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: var(--panel);
+}
 
 /* fallback / message cards */
 .msg {
@@ -408,23 +506,32 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   gap: 3px;
 }
 .crumb { color: var(--accent); }
-.crumb:hover { text-decoration: underline; }
-.crumb:last-child { color: var(--ink); }
+button.crumb:hover { text-decoration: underline; }
+/* the trailing "you are here" crumb — last dir when browsing, the file
+   name when one is open — is plain ink, not a link */
+button.crumb:last-child { color: var(--ink); }
+.crumb-file { color: var(--ink); }
 .crumb-sep { color: var(--ink-faint); }
 
-/* toggle: expand the source pane to fill the detail column */
-.src-full-toggle {
+/* crumb-bar icon buttons: grow/shrink the source pane, and close it back to
+   the preview. Same treatment as the detail titlebar's icons. */
+.src-icon {
   flex-shrink: 0;
-  padding: 1px 6px;
-  font-family: var(--mono);
-  font-size: 0.68rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   color: var(--ink-faint);
-  border: 1px solid var(--hair);
+  transition: color .14s;
 }
-.src-full-toggle::before { content: "[ \2195 ]"; }   /* ↕ split */
+.src-icon .ic { display: block; }
+.src-full-toggle .ic-shrink { display: none; }
 .src-full-toggle:hover { color: var(--ink); }
-.detail-body.src-full .src-full-toggle { color: var(--accent); border-color: var(--accent); }
-.detail-body.src-full .src-full-toggle::before { content: "[ \2196 ]"; }  /* ↖ collapse */
+.src-close:hover { color: var(--rose); }
+.detail-body.src-full .src-full-toggle { color: var(--accent); }
+.detail-body.src-full .src-full-toggle .ic-grow   { display: none; }
+.detail-body.src-full .src-full-toggle .ic-shrink { display: block; }
 
 .tree-list {
   flex: 1;
@@ -447,19 +554,141 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .tree-glyph { color: var(--ink-faint); flex-shrink: 0; width: 1em; text-align: center; font-size: 0.7em; }
 .tree-row[data-type="dir"] .tree-name { color: var(--accent); }
 
-.source-code {
+/* code view: a line-number gutter + the highlighted source, sharing one
+   scroll box so the two never drift. */
+.code {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  margin: 0;
-  padding: var(--pad);
+  display: grid;
+  grid-template-columns: auto 1fr;
   font-family: var(--mono);
   font-size: 0.74rem;
   line-height: 1.6;
-  color: var(--ink);
-  white-space: pre;
   tab-size: 2;
+  background: var(--panel);
 }
+.code-gutter {
+  position: sticky;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--pad) 10px var(--pad) 14px;
+  text-align: right;
+  color: var(--ink-faint);
+  background: var(--bar);
+  border-right: 1px solid var(--hair);
+  user-select: none;
+  white-space: pre;
+}
+.code-gutter span { display: block; min-width: calc(var(--gutter-ch, 2) * 1ch); }
+.code-text {
+  margin: 0;
+  padding: var(--pad) var(--pad) var(--pad) 16px;
+  white-space: pre;
+  color: var(--ink);
+  overflow: visible;
+}
+.code-line { display: block; }
+
+/* token palette — VS Code default roles, one set per theme */
+.tok-comment  { color: #6a737d; }
+.tok-keyword  { color: #d73a49; }
+.tok-string   { color: #032f62; }
+.tok-number   { color: #005cc5; }
+.tok-function { color: #6f42c1; }
+.tok-tag      { color: #22863a; }
+.tok-attr     { color: #6f42c1; }
+
+:root[data-theme="dark"] .tok-comment  { color: #6a9955; }
+:root[data-theme="dark"] .tok-keyword  { color: #569cd6; }
+:root[data-theme="dark"] .tok-string   { color: #ce9178; }
+:root[data-theme="dark"] .tok-number   { color: #b5cea8; }
+:root[data-theme="dark"] .tok-function { color: #dcdcaa; }
+:root[data-theme="dark"] .tok-tag      { color: #4ec9b0; }
+:root[data-theme="dark"] .tok-attr     { color: #9cdcfe; }
+
+/* README preview — a rendered Markdown document filling the top pane when a
+   project has no live site. Scrolls itself; mono body, same as the site. */
+.readme {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--panel);
+}
+.md {
+  max-width: 76ch;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(18px, 3vw, 40px) 56px;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.md > :first-child { margin-top: 0; }
+.md h1, .md h2, .md h3, .md h4 {
+  font-family: var(--display);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  margin: 1.6em 0 0.6em;
+}
+.md h1 { font-size: 1.7rem; }
+.md h2 { font-size: 1.32rem; padding-bottom: 0.3em; border-bottom: 1px solid var(--hair); }
+.md h3 { font-size: 1.1rem; }
+.md h4 { font-size: 0.95rem; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-dim); }
+.md p { margin: 0 0 1em; }
+.md strong { font-weight: 600; color: var(--ink); }
+.md em { font-style: normal; color: var(--ink-dim); }   /* emphasis without italics */
+.md a { color: var(--accent); border-bottom: 1px solid transparent; transition: border-color .12s; }
+.md a:hover { border-color: var(--accent); }
+.md ul, .md ol { margin: 0 0 1em; padding-left: 1.5em; }
+.md li { margin: 0.25em 0; }
+.md li > ul, .md li > ol { margin: 0.25em 0; }
+.md blockquote {
+  margin: 0 0 1em;
+  padding: 0.2em 0 0.2em 1em;
+  border-left: 2px solid var(--hair);
+  color: var(--ink-dim);
+}
+.md hr { border: 0; border-top: 1px solid var(--hair); margin: 2em 0; }
+.md img { display: block; max-width: 100%; margin: 1em 0; }
+.md code {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  padding: 0.12em 0.4em;
+  background: var(--bar);
+  border: 1px solid var(--hair);
+  border-radius: 0;
+}
+/* fenced blocks: a bare highlighted <pre>, no line-number gutter */
+.md .code-snippet {
+  margin: 0 0 1.2em;
+  padding: 12px 14px;
+  max-height: 420px;
+  overflow: auto;
+  background: var(--bar);
+  border: 1px solid var(--hair);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+}
+.md .code-snippet code { font: inherit; padding: 0; background: none; border: 0; }
+.md .code-snippet .code-line { display: block; }
+.md table {
+  width: 100%;
+  margin: 0 0 1.2em;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.md th, .md td {
+  padding: 6px 10px;
+  border: 1px solid var(--hair);
+  text-align: left;
+}
+.md th { background: var(--bar); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.03em; }
 
 /* narrow screens: the detail pane replaces the list */
 @media (max-width: 820px) {

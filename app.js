@@ -11,94 +11,94 @@
 /*
   Content — edit this.
 
-  Every card is one entry: { name, slug, desc, tags, url, repo }. `url` is the
-  live site (drives the preview iframe); `repo` is a GitHub URL (drives the
-  source browser). Both are optional. `slug` must be unique across all three
-  lists — it drives selection and the remembered "last opened" card.
+  Each entry: { name, slug, what, desc, tags, url, repo }.
+    what : a three-or-four word plain-English label ("Artist portfolio site")
+    desc : the fuller line shown once a card is selected
+    url  : the live site — drives the preview iframe
+    repo : a GitHub URL — drives the source browser
+  `url` and `repo` are optional; `repoPrivate: true` marks a repo that exists
+  but can't be browsed. `slug` must be unique across every group.
+
+  Groups are listed top to bottom in `nav` below.
+
+  `logo` (websites only) is a path under assets/logos/. It's shown on a light
+  lockup panel at the top of the card, so a dark or a colour logo both read.
+  Cards without a `logo` (tools, CV) show no panel — just name and "what".
 */
 
-const GITHUB_USERNAME = "YOUR_USERNAME";
+const GITHUB_USERNAME = "otisweygang";
 
-// The websites section, shown first and given the most visual weight.
-// `repoPrivate` marks a repo that exists but can't be browsed — no source link.
 const websites = [
   {
     name: "bonezbizarre.com",
     slug: "bonez",
+    what: "Static artist portfolio",
     desc: "Artist portfolio — painting, photography, installations. Hand-built, no framework.",
-    tags: ["HTML", "CSS", "Vanilla JS"],
+    tags: ["JS", "HTML", "CSS"],
     url: "https://bonezbizarre.com",
     repo: "https://github.com/otisweygang/bonez",
+    logo: "./assets/logos/bonez-bizarre-logo.svg",
   },
   {
     name: "icahd.org",
     slug: "icahd",
-    desc: "Non-profit site, maintained. Short line about the site and your role on it.",
-    tags: ["Maintained"],
+    what: "Human rights landing site",
+    desc: "Non-profit site I maintain. Short line about the site and your role on it.",
+    tags: ["Astro", "TS", "HTML", "CSS"],
     url: "https://icahd.org",
     repoPrivate: true,
+    logo: "./assets/logos/icahd-logo.svg",
   },
   {
     name: "mamba-uk.com",
     slug: "mamba",
-    desc: "Business site. Short line about the site and your role on it.",
-    tags: ["HTML", "CSS", "Vanilla JS"],
+    what: "Static artist portfolio",
+    desc: "Business site, hand-built. Short line about the site and your role on it.",
+    tags: ["JS", "HTML", "CSS"],
     url: "https://mamba-uk.com",
     repo: "https://github.com/otisweygang/mamba",
+    logo: "./assets/logos/mamba-logo.png",
   },
   {
     name: "thegentlehand.netlify.app",
     slug: "gentle-hand",
-    desc: "Short line about the site and your role on it.",
-    tags: ["HTML", "CSS", "JS", "Netlify"],
+    what: "Feature film landing site",
+    desc: "Small site, built and deployed on Netlify. Short line about your role on it.",
+    tags: ["JS", "HTML", "CSS"],
     url: "https://thegentlehand.netlify.app",
     repo: "https://github.com/otisweygang/atta",
+    logo: "./assets/logos/atta-palio-films-logo.png",
   },
 ];
 
-// Coding projects, grouped by language.
-const codingByLanguage = [
+const tools = [
   {
-    language: "C",
-    entries: [
-      {
-        name: "hex-editor",
-        slug: "hex-editor",
-        desc: "Terminal hex editor. ncurses, no deps.",
-        tags: ["C", "ncurses"],
-        repo: "https://github.com/otisweygang/hex-editor",
-      },
-    ],
-  },
-  {
-    language: "Go",
-    entries: [
-      {
-        name: "lsp-server",
-        slug: "lsp-server",
-        desc: "A small language server, for learning the protocol.",
-        tags: ["Go", "LSP"],
-        repo: "https://github.com/otisweygang/lsp-server",
-      },
-    ],
+    name: "Site Probe",
+    slug: "siteprobe",
+    what: "Concurrent URL health checker",
+    desc: "CLI that checks a list of URLs concurrently and prints a table of HTTP status codes and response times. Go standard library only, no dependencies.",
+    tags: ["Go", "CLI", "stdlib"],
+    repo: "https://github.com/otisweygang/siteprobe",
   },
 ];
 
 const cv = {
-  name: "cv",
+  name: "CV",
   slug: "cv",
-  desc: "One-page CV.",
+  what: "One-page CV",
+  desc: "One-page CV (PDF).",
   tags: ["PDF"],
-  url: "./Otis_Weygang_CV.pdf",
+  url: "./assets/Otis_Weygang_CV_redacted.pdf",
 };
 
-const DEFAULT_SLUG = "bonez";
+// Top to bottom: the sections of the landing view. `heading` labels each grid.
+const nav = [
+  { heading: "Websites", entries: websites },
+  { heading: "Projects", entries: tools },
+  { heading: "CV", entries: [cv] },
+];
 
-function allEntries() {
-  return [...websites, ...codingByLanguage.flatMap((group) => group.entries), cv];
-}
-
-const entryBySlug = new Map(allEntries().map((entry) => [entry.slug, entry]));
+const entryBySlug = new Map(nav.flatMap((group) => group.entries).map((e) => [e.slug, e]));
 
 
 /* DOM + markup helpers */
@@ -167,92 +167,90 @@ function writeStored(key, value) {
 
 
 /*
-  The card list down the left side. Websites and Coding projects each lay
-  out as a 2-column grid that collapses to one column when space is tight;
-  CV is a single full-width card. Selecting a card opens it in the detail
-  pane; the last-opened card is remembered in localStorage and reopened on
-  the next visit.
+  The nav is the landing view: on load it fills the whole page. A short
+  intro (name + tagline) sits above one section per `nav` group.
+  A website card leads with its logo on a light lockup panel; cards without
+  a logo (tools, CV) are just the name and a short "what it is" line.
+  Picking a card adds `.is-split` to the stage: the grid becomes a single
+  left-hand column and the preview slides in. Closing it returns here.
 */
 
-const NAV_LAST_KEY = "nav-last"; // slug of the last-opened card
+const NAV_HELLO = "Otis Weygang.";
+const NAV_PROMPT = "Work, projects, and things I've made.";
 
-function tagRow(tags) {
-  if (!tags?.length) return "";
-  return html`<div class="nav-tags">${tags.map((tag) => html`<span class="nav-tag">${tag}</span>`)}</div>`;
-}
-
-// The mono hint line under a card: which of live / source it offers.
-function affordances(entry) {
-  const hints = [
-    entry.url && "live",
-    entry.repo ? "source" : entry.repoPrivate && "source private",
-  ].filter(Boolean);
-  return hints.length
-    ? html`<div class="nav-card-links">${hints.map((h) => html`<span class="nav-link">${h}</span>`)}</div>`
-    : "";
-}
-
-// Card titles are domains, so they don't wrap. Step the font size down as the
-// name gets longer so a long one still fits on a single line.
-function nameSizeStep(name) {
-  if (name.length <= 14) return "1";
-  if (name.length <= 19) return "0.9";
-  if (name.length <= 24) return "0.8";
-  return "0.72";
-}
-
-function projectCard(entry) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "nav-card";
-  button.dataset.slug = entry.slug;
-  button.style.setProperty("--name-scale", nameSizeStep(entry.name));
-  render(button, html`
-    <p class="nav-card-name">${entry.name}</p>
-    <p class="nav-card-desc">${entry.desc}</p>
-    ${tagRow(entry.tags)}
-    ${affordances(entry)}
+function galleryCard(entry) {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "nav-card";
+  card.dataset.slug = entry.slug;
+  render(card, html`
+    ${entry.logo
+      ? html`<span class="nav-card-logo"><img src="${entry.logo}" alt="${entry.name} logo" loading="lazy" /></span>`
+      : ""}
+    <span class="nav-card-body">
+      <span class="nav-card-name">${entry.name}</span>
+      <span class="nav-card-what">${entry.what}</span>
+      ${entry.tags?.length
+        ? html`<span class="nav-card-tags">${entry.tags.map(
+            (tag) => html`<span class="tag">${tag}</span>`,
+          )}</span>`
+        : ""}
+    </span>
   `);
-  button.addEventListener("click", () => openDetail(entry, button));
-  return button;
+  card.addEventListener("click", () => openDetail(entry, card));
+  return card;
 }
 
-function navSection(title, layout, ...children) {
-  const section = document.createElement("section");
-  section.className = "nav-group";
-  render(section, html`
-    <h2 class="nav-group-title">${title}</h2>
-    <div class="nav-${layout}"></div>
+function navGroup({ heading, entries }) {
+  const group = document.createElement("section");
+  group.className = "nav-group";
+  render(group, html`
+    <h2 class="nav-group-title">${heading}</h2>
+    <div class="nav-grid"></div>
   `);
-  section.querySelector(`.nav-${layout}`).append(...children);
-  return section;
-}
-
-function languageHeading(language) {
-  const heading = document.createElement("h3");
-  heading.className = "nav-sub";
-  heading.textContent = language;
-  return heading;
+  group.querySelector(".nav-grid").append(...entries.map(galleryCard));
+  return group;
 }
 
 function buildNav() {
-  const coding = codingByLanguage.flatMap(({ language, entries }) => [
-    languageHeading(language),
-    ...entries.map(projectCard),
-  ]);
+  const intro = document.createElement("header");
+  intro.className = "nav-intro";
+  render(intro, html`
+    <p class="nav-hello">${NAV_HELLO}</p>
+    <p class="nav-prompt">${NAV_PROMPT}</p>
+  `);
 
-  el("cards").replaceChildren(
-    navSection("Websites", "grid", ...websites.map(projectCard)),
-    navSection("Coding projects", "grid", ...coding),
-    navSection("CV", "column", projectCard(cv)),
-  );
+  el("cards").replaceChildren(intro, ...nav.map(navGroup));
   el("list-count").textContent = `${entryBySlug.size} entries`;
-
-  const stored = readStored(NAV_LAST_KEY);
-  const slug = entryBySlug.has(stored) ? stored : DEFAULT_SLUG;
-  const button = el("cards").querySelector(`.nav-card[data-slug="${CSS.escape(slug)}"]`);
-  if (button) openDetail(entryBySlug.get(slug), button);
+  fitCardNames();
 }
+
+// The card header is a URL and must stay on one line. CSS can't size-to-fit,
+// so step the font down (from the stylesheet's 1rem) until it no longer wraps.
+// Re-run on resize since the column width changes with the viewport.
+function fitCardNames() {
+  for (const name of document.querySelectorAll(".nav-card-name")) {
+    name.style.fontSize = "";
+    let px = parseFloat(getComputedStyle(name).fontSize);
+    const oneLine = name.clientHeight;
+    while (name.scrollWidth > name.clientWidth && px > 9) {
+      px -= 0.5;
+      name.style.fontSize = `${px}px`;
+    }
+    // guard against a wrap the width check misses on sub-pixel rounding
+    if (name.scrollHeight > oneLine + 1 && px > 9) name.style.fontSize = `${px - 1}px`;
+  }
+}
+
+let fitPending = false;
+window.addEventListener("resize", () => {
+  if (fitPending) return;
+  fitPending = true;
+  requestAnimationFrame(() => {
+    fitPending = false;
+    fitCardNames();
+  });
+});
 
 
 /* Detail pane — open / close / expand */
@@ -267,20 +265,25 @@ function openDetail(item, cardNode) {
     selected.classList.remove("is-selected");
   }
   cardNode?.classList.add("is-selected");
-  writeStored(NAV_LAST_KEY, item.slug);
 
   el("win-detail").hidden = false;
-  el("stage").classList.add("is-split"); // CSS slides the window in and resizes everything
+  el("stage").classList.add("is-split"); // grid collapses to a rail, preview slides in
+  setTimeout(fitCardNames, 340); // re-fit once the rail has finished narrowing
 
-  setView("preview");
+  // A website opens on its live preview. A code-only project has nothing to
+  // frame, so it opens straight into the source split — README rendered on
+  // top, the file tree below.
   renderPreview(item);
+  setView(item.url ? "preview" : "source");
 }
 
+// Back to the full-page landing grid.
 function closeDetail() {
   const stage = el("stage");
   stage.classList.remove("is-split", "is-wide");
   setTimeout(() => {
     if (!stage.classList.contains("is-split")) el("win-detail").hidden = true;
+    fitCardNames(); // grid is back to full width — re-fit the headers
   }, 320);
 
   for (const selected of document.querySelectorAll(".nav-card.is-selected")) {
@@ -292,15 +295,21 @@ function closeDetail() {
 // Expanded: detail takes ~80%, the list shrinks to a thin rail.
 function toggleWide() {
   el("stage").classList.toggle("is-wide");
+  setTimeout(fitCardNames, 340);
 }
 
-// The titlebar path: the live URL while previewing, the repo path while reading source.
+// The titlebar path: while previewing, the live URL — or README.md for a
+// code-only project. While reading source, the repo path.
 function setDetailPath(view) {
   if (!currentItem) return;
   el("detail-path").textContent =
     view === "source"
       ? repoSlug(currentItem.repo) ?? "no repository"
-      : String(currentItem.url || "no live site").replace(/^https?:\/\//, "");
+      : currentItem.url
+        ? currentItem.url.replace(/^https?:\/\//, "")
+        : currentItem.repo
+          ? `${repoSlug(currentItem.repo)}/README.md`
+          : "no live site";
 }
 
 
@@ -310,6 +319,13 @@ function setView(name) {
   for (const tab of document.querySelectorAll(".win-tab")) {
     tab.classList.toggle("is-active", tab.dataset.view === name);
   }
+  // the top pane frames a live site for a website, or renders the README for
+  // a code-only project — label the tab for what it actually shows
+  const top = document.querySelector('.win-tab[data-view="preview"]');
+  if (top) top.textContent = currentItem && !currentItem.url ? "readme" : "preview";
+  // the source browser needs a repo — hide its tab for entries without one
+  const srcTab = document.querySelector('.win-tab[data-view="source"]');
+  if (srcTab) srcTab.hidden = !currentItem?.repo;
 
   const body = el("detail-body");
   body.dataset.view = name; // one attribute drives the layout
@@ -335,8 +351,25 @@ function renderPreview(item) {
 
   const view = document.querySelector('.detail-view[data-view="preview"]');
 
+  // No live site: show the repo's README, rendered, in place of the frame.
   if (!item.url) {
-    showMessage(view, "// no live site for this entry", item, item.repo);
+    if (item.repo) renderReadme(view, item);
+    else showMessage(view, "// no live site for this entry", item, null);
+    return;
+  }
+
+  // A PDF fills the pane as a plain document. Ask the built-in viewer to start
+  // with its side panel (the thumbnail/bookmark "hamburger") collapsed —
+  // Chrome reads #navpanes/#pagemode, other viewers ignore the fragment.
+  if (/\.pdf($|[?#])/i.test(item.url)) {
+    view.classList.add("has-doc");
+    render(view, html`
+      <iframe id="preview-frame" class="doc-frame" title="Preview of ${item.name}"
+        src="${item.url}#pagemode=none&navpanes=0" referrerpolicy="no-referrer"></iframe>
+    `);
+    whenPreviewFails(document.getElementById("preview-frame"), () => {
+      showMessage(view, "// could not display this PDF", item, item.url);
+    });
     return;
   }
 
@@ -352,6 +385,38 @@ function renderPreview(item) {
   whenPreviewFails(document.getElementById("preview-frame"), () => {
     showMessage(view, "// remote host refused to embed", item, item.url);
   });
+}
+
+// Pull OWNER/REPO's README via the dedicated endpoint (case-insensitive,
+// finds README.md / .markdown / .rst) and drop it in rendered.
+function renderReadme(view, item) {
+  const repo = repoSlug(item.repo);
+  view.classList.add("has-readme"); // swap the frame-centring box for a scroll box
+  render(view, html`<div class="readme"><div class="msg"><p class="line">// reading README…</p></div></div>`);
+  const target = view.querySelector(".readme");
+
+  const key = `${repo}/__readme__`;
+  if (!repoRequests.has(key)) {
+    repoRequests.set(
+      key,
+      fetch(`https://api.github.com/repos/${repo}/readme`, {
+        headers: { Accept: "application/vnd.github.raw" },
+      }).then((r) => {
+        if (!r.ok) throw new Error(describeError(r.status));
+        return r.text();
+      }).catch((err) => {
+        repoRequests.delete(key);
+        throw err;
+      }),
+    );
+  }
+
+  repoRequests
+    .get(key)
+    .then((text) => render(target, html`<article class="md">${renderMarkdown(text)}</article>`))
+    .catch((err) =>
+      render(target, sourceError(item, `README — ${err.message}`)),
+    );
 }
 
 // Some hosts silently refuse to be framed: no error event, just a blank iframe.
@@ -468,16 +533,34 @@ function sourceShell() {
     render(view, html`
       <div class="tree-crumbs">
         <span class="crumb-path"></span>
-        <button class="src-full-toggle" type="button" aria-label="Expand source pane"></button>
+        <button class="src-icon src-full-toggle" type="button" aria-label="Expand source pane">
+          <svg class="ic ic-grow" width="13" height="13" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20V4M12 4l-5 5M12 4l5 5" />
+          </svg>
+          <svg class="ic ic-shrink" width="13" height="13" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 4v16M12 20l-5-5M12 20l5-5" />
+          </svg>
+        </button>
+        <button class="src-icon src-close" type="button" aria-label="Close source pane">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
       </div>
       <div class="src-body"></div>
     `);
     view.querySelector(".src-full-toggle").addEventListener("click", toggleSourceFull);
+    view.querySelector(".src-close").addEventListener("click", () => setView("preview"));
   }
   return view;
 }
 
-function renderCrumbs(view, item, repo, path) {
+// `path` is the directory chain of clickable crumbs; `file`, when given, is
+// appended as a plain non-clickable leaf so an open file shows in the trail.
+function renderCrumbs(view, item, repo, path, file) {
   const bar = view.querySelector(".crumb-path");
   const segments = path ? path.split("/") : [];
   let accum = "";
@@ -491,14 +574,15 @@ function renderCrumbs(view, item, repo, path) {
         <button class="crumb" data-path="${accum}">${segment}</button>
       `;
     })}
+    ${file
+      ? html`<span class="crumb-sep">/</span><span class="crumb crumb-file">${file}</span>`
+      : ""}
   `);
 
-  for (const crumb of bar.querySelectorAll(".crumb")) {
+  for (const crumb of bar.querySelectorAll("button.crumb")) {
     crumb.addEventListener("click", () => openRepoDir(item, crumb.dataset.path));
   }
-  view
-    .querySelector(".src-full-toggle")
-    .classList.toggle("is-on", el("detail-body").classList.contains("src-full"));
+  // the toggle's lit/glyph state is pure CSS off .detail-body.src-full
 }
 
 // Swap the body with a short cross-fade. `instant` skips it (cache hits).
@@ -587,16 +671,14 @@ function openRepoFile(item, path) {
   if (!view) return;
 
   const repo = repoSlug(item.repo);
-  const parent = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
-  renderCrumbs(view, item, repo, parent);
+  const slash = path.lastIndexOf("/");
+  const parent = slash === -1 ? "" : path.slice(0, slash);
+  const name = slash === -1 ? path : path.slice(slash + 1);
+  renderCrumbs(view, item, repo, parent, name);
 
+  const lang = languageFor(name);
   const showCode = (text, instant) =>
-    setSourceBody(
-      view,
-      html`<pre class="source-code"></pre>`,
-      (body) => (body.querySelector(".source-code").textContent = text),
-      instant,
-    );
+    setSourceBody(view, codeBlock(text, lang), null, instant);
 
   const request = fetchRepoPath(repo, path);
   withSlowSpinner(request, () => setSourceBody(view, loadingMessage(path), null, true));
@@ -607,19 +689,332 @@ function openRepoFile(item, path) {
 }
 
 
-/* Theme (dark default, light optional) */
+/*
+  Syntax highlighting — a small hand-rolled tokenizer, no library, no build.
+  It's deliberately approximate: one regex sweep per line, a shared grammar
+  for the C-like languages the repos here actually use (JS/TS, Go, C), plus
+  dedicated passes for HTML, CSS, JSON, Markdown and shell. Good enough to
+  read by; not a parser. Everything is escaped as it's wrapped in spans.
+
+  Palette (the .tok-* classes) lives in styles.css and follows VS Code's
+  default dark/light roles: comment, keyword, string, number, function,
+  and a couple of markup-only ones (tag, attr).
+*/
+
+const EXT_LANG = {
+  js: "clike", jsx: "clike", mjs: "clike", cjs: "clike",
+  ts: "clike", tsx: "clike",
+  go: "clike", c: "clike", h: "clike", java: "clike", rs: "clike",
+  css: "css", scss: "css", less: "css",
+  html: "markup", htm: "markup", xml: "markup", svg: "markup", vue: "markup",
+  json: "json",
+  md: "markdown", markdown: "markdown",
+  sh: "shell", bash: "shell", zsh: "shell",
+  yml: "yaml", yaml: "yaml",
+};
+
+function languageFor(filename) {
+  const dot = filename.lastIndexOf(".");
+  const ext = dot === -1 ? "" : filename.slice(dot + 1).toLowerCase();
+  if (EXT_LANG[ext]) return EXT_LANG[ext];
+  if (/^(Dockerfile|Makefile)$/i.test(filename)) return "shell";
+  return "plain";
+}
+
+const CLIKE_KEYWORDS = new Set(
+  ("const let var function return if else for while do switch case break continue " +
+   "new class extends super this typeof instanceof in of void delete yield await async " +
+   "try catch finally throw import export from as default static get set " +
+   "func package type struct interface map chan go defer select range fallthrough " +
+   "int int8 int16 int32 int64 uint uint8 uint16 uint32 uint64 float32 float64 " +
+   "string bool byte rune error nil true false null undefined " +
+   "public private protected void short long double char unsigned signed sizeof " +
+   "struct union enum extern register volatile goto").split(" "),
+);
+
+// Wrap each match of `re` in <span class="tok-CLASS">, escaping the text.
+// Non-matching gaps are escaped verbatim. `classify` may return null to skip.
+function paint(line, re, classify) {
+  let out = "";
+  let last = 0;
+  for (const m of line.matchAll(re)) {
+    out += escapeHTML(line.slice(last, m.index));
+    const cls = classify(m);
+    out += cls ? `<span class="tok-${cls}">${escapeHTML(m[0])}</span>` : escapeHTML(m[0]);
+    last = m.index + m[0].length;
+  }
+  return out + escapeHTML(line.slice(last));
+}
+
+const HIGHLIGHTERS = {
+  plain: (line) => escapeHTML(line),
+
+  clike: (line) => {
+    // One alternation so earlier groups (comments, strings) win over later
+    // ones (a `//` inside a string must not start a comment, etc.).
+    const re =
+      /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b0x[0-9a-fA-F]+\b|\b\d[\d_]*(?:\.\d+)?(?:[eE][+-]?\d+)?\b)|([A-Za-z_$][\w$]*)(?=\s*\()|([A-Za-z_$][\w$]*)/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return "comment";
+      if (m[2]) return "string";
+      if (m[3]) return "number";
+      if (m[4]) return CLIKE_KEYWORDS.has(m[4]) ? "keyword" : "function";
+      if (m[5]) return CLIKE_KEYWORDS.has(m[5]) ? "keyword" : null;
+      return null;
+    });
+  },
+
+  css: (line) => {
+    const re =
+      /(\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(#[0-9a-fA-F]{3,8}\b|\b\d+(?:\.\d+)?(?:px|rem|em|%|vh|vw|s|ms|deg|fr|ch|cqw|cqh|dvh)?\b)|(@[\w-]+|--[\w-]+)|([.#]?-?[A-Za-z_][\w-]*)(?=\s*[:{(])/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return "comment";
+      if (m[2]) return "string";
+      if (m[3]) return "number";
+      if (m[4]) return "keyword";
+      if (m[5]) return "function";
+      return null;
+    });
+  },
+
+  markup: (line) => {
+    const re = /(<!--[\s\S]*?-->)|(<\/?[A-Za-z][\w-]*)|([A-Za-z-]+)(?==)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\/?>)/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return "comment";
+      if (m[2]) return "tag";
+      if (m[3]) return "attr";
+      if (m[4]) return "string";
+      if (m[5]) return "tag";
+      return null;
+    });
+  },
+
+  json: (line) => {
+    const re = /("(?:[^"\\]|\\.)*")(\s*:)?|(\b-?\d[\d.eE+-]*\b)|(\btrue\b|\bfalse\b|\bnull\b)/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return m[2] ? "attr" : "string";
+      if (m[3]) return "number";
+      if (m[4]) return "keyword";
+      return null;
+    });
+  },
+
+  yaml: (line) => {
+    const re = /(#[^\n]*)|(^\s*[A-Za-z_][\w-]*)(?=:)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b-?\d[\d.]*\b)|(\btrue\b|\bfalse\b|\bnull\b)/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return "comment";
+      if (m[2]) return "attr";
+      if (m[3]) return "string";
+      if (m[4]) return "number";
+      if (m[5]) return "keyword";
+      return null;
+    });
+  },
+
+  shell: (line) => {
+    const re = /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'[^']*')|(\$\w+|\$\{[^}]*\})|(^\s*[A-Za-z_][\w-]*)(?==)/g;
+    return paint(line, re, (m) => {
+      if (m[1]) return "comment";
+      if (m[2]) return "string";
+      if (m[3]) return "keyword";
+      if (m[4]) return "attr";
+      return null;
+    });
+  },
+
+  markdown: (line) => {
+    if (/^\s{0,3}#{1,6}\s/.test(line)) return `<span class="tok-keyword">${escapeHTML(line)}</span>`;
+    if (/^\s{0,3}(?:[-*+]|\d+\.)\s/.test(line)) {
+      const m = line.match(/^(\s*)([-*+]|\d+\.)(\s.*)$/);
+      if (m) return escapeHTML(m[1]) + `<span class="tok-keyword">${escapeHTML(m[2])}</span>` + mdInline(m[3]);
+    }
+    if (/^\s*>/.test(line)) return `<span class="tok-comment">${escapeHTML(line)}</span>`;
+    return mdInline(line);
+  },
+};
+
+function mdInline(text) {
+  return paint(
+    text,
+    /(`[^`]+`)|(\*\*[^*]+\*\*|__[^_]+__)|(\[[^\]]+\]\([^)]+\))/g,
+    (m) => (m[1] ? "string" : m[2] ? "function" : m[3] ? "tag" : null),
+  );
+}
+
+// Highlight `text` as `lang`, one <span class="code-line"> per line.
+function highlightLines(text, lang) {
+  const highlight = HIGHLIGHTERS[lang] || HIGHLIGHTERS.plain;
+  return new SafeHTML(
+    text
+      .replace(/\n$/, "")
+      .split("\n")
+      .map((line) => `<span class="code-line">${highlight(line) || " "}</span>`)
+      .join(""),
+  );
+}
+
+// The file viewer: a line-number gutter beside the highlighted source. Each
+// line is its own row so numbers and code always align.
+function codeBlock(text, lang) {
+  const lines = text.replace(/\n$/, "").split("\n");
+  return html`
+    <div class="code" style="--gutter-ch: ${String(lines.length).length}">
+      <div class="code-gutter">${new SafeHTML(
+        lines.map((_, i) => `<span>${i + 1}</span>`).join(""),
+      )}</div>
+      <pre class="code-text">${highlightLines(text, lang)}</pre>
+    </div>
+  `;
+}
+
+// A bare highlighted block — no gutter — for fenced code inside a README.
+function codeSnippet(text, lang) {
+  return html`<pre class="code-snippet"><code>${highlightLines(text, lang)}</code></pre>`;
+}
+
+
+/*
+  Markdown → HTML for the README preview. A deliberately small block parser:
+  ATX headings, fenced and indented code, unordered/ordered lists (one level),
+  blockquotes, thematic breaks, tables, and paragraphs. Inline: code spans,
+  bold, italic, links, images, autolinks. Everything is escaped; only the
+  tags this function emits are ever inserted.
+*/
+
+function mdInlineHTML(text) {
+  // Escape first, then re-introduce only our own markup.
+  let s = escapeHTML(text);
+  s = s.replace(/`([^`]+)`/g, (_, c) => `<code>${c}</code>`);
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g,
+    (_, alt, src) => `<img src="${src}" alt="${alt}" loading="lazy" />`);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g,
+    (_, label, href) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`);
+  s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+    (_, pre, url) => `${pre}<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
+  s = s.replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (_, a, b) => `<strong>${a ?? b}</strong>`);
+  s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*/g, (_, pre, t) => `${pre}<em>${t}</em>`);
+  s = s.replace(/(^|[^_])_([^_\s][^_]*?)_/g, (_, pre, t) => `${pre}<em>${t}</em>`);
+  return new SafeHTML(s);
+}
+
+function renderMarkdown(src) {
+  const lines = src.replace(/\r\n?/g, "\n").split("\n");
+  const out = [];
+  let i = 0;
+
+  const flushList = (items, ordered) => {
+    const tag = ordered ? "ol" : "ul";
+    out.push(`<${tag}>${items.map((it) => `<li>${mdInlineHTML(it).value}</li>`).join("")}</${tag}>`);
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (!line.trim()) { i++; continue; }
+
+    // fenced code
+    const fence = line.match(/^\s*(```+|~~~+)\s*([\w-]*)/);
+    if (fence) {
+      const close = fence[1][0];
+      const buf = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith(close)) buf.push(lines[i++]);
+      i++; // skip closing fence
+      out.push(codeSnippet(buf.join("\n"), languageFor(`x.${fence[2] || "txt"}`)).value);
+      continue;
+    }
+
+    // ATX heading
+    const h = line.match(/^\s{0,3}(#{1,6})\s+(.*?)\s*#*\s*$/);
+    if (h) {
+      const lvl = h[1].length;
+      out.push(`<h${lvl}>${mdInlineHTML(h[2]).value}</h${lvl}>`);
+      i++;
+      continue;
+    }
+
+    // thematic break
+    if (/^\s{0,3}([-*_])\s*(?:\1\s*){2,}$/.test(line)) { out.push("<hr />"); i++; continue; }
+
+    // blockquote (fold consecutive > lines)
+    if (/^\s{0,3}>/.test(line)) {
+      const buf = [];
+      while (i < lines.length && /^\s{0,3}>/.test(lines[i])) {
+        buf.push(lines[i].replace(/^\s{0,3}>\s?/, ""));
+        i++;
+      }
+      out.push(`<blockquote>${renderMarkdown(buf.join("\n"))}</blockquote>`);
+      continue;
+    }
+
+    // table: a header row followed by a |---|---| separator
+    if (line.includes("|") && /^\s*\|?[\s:-]+\|[\s:|-]*$/.test(lines[i + 1] || "")) {
+      const row = (l) => l.replace(/^\s*\|?|\|?\s*$/g, "").split("|").map((c) => c.trim());
+      const head = row(line);
+      i += 2;
+      const body = [];
+      while (i < lines.length && lines[i].includes("|")) body.push(row(lines[i++]));
+      out.push(
+        `<table><thead><tr>${head.map((c) => `<th>${mdInlineHTML(c).value}</th>`).join("")}</tr></thead>` +
+        `<tbody>${body.map((r) => `<tr>${r.map((c) => `<td>${mdInlineHTML(c).value}</td>`).join("")}</tr>`).join("")}</tbody></table>`,
+      );
+      continue;
+    }
+
+    // list (one level; consecutive items of the same kind)
+    const li = line.match(/^\s{0,3}([-*+]|\d+[.)])\s+(.*)$/);
+    if (li) {
+      const ordered = /\d/.test(li[1]);
+      const items = [];
+      while (i < lines.length) {
+        const m = lines[i].match(/^\s{0,3}([-*+]|\d+[.)])\s+(.*)$/);
+        if (!m) {
+          // a plain indented continuation line joins the previous item
+          if (items.length && /^\s{2,}\S/.test(lines[i])) { items[items.length - 1] += " " + lines[i].trim(); i++; continue; }
+          break;
+        }
+        items.push(m[2]);
+        i++;
+      }
+      flushList(items, ordered);
+      continue;
+    }
+
+    // indented code block
+    if (/^ {4}\S/.test(line)) {
+      const buf = [];
+      while (i < lines.length && (/^ {4}/.test(lines[i]) || !lines[i].trim())) {
+        buf.push(lines[i].slice(4));
+        i++;
+      }
+      out.push(codeSnippet(buf.join("\n").replace(/\n+$/, ""), "plain").value);
+      continue;
+    }
+
+    // paragraph: gather until a blank line or a block starter
+    const buf = [];
+    while (i < lines.length && lines[i].trim() && !/^\s{0,3}(#{1,6}\s|>|```|~~~|([-*+]|\d+[.)])\s)/.test(lines[i])) {
+      buf.push(lines[i]);
+      i++;
+    }
+    out.push(`<p>${mdInlineHTML(buf.join(" ")).value}</p>`);
+  }
+
+  return new SafeHTML(out.join(""));
+}
+
+
+/* Theme (light default, dark optional) */
 
 function applyTheme(name) {
-  const root = document.documentElement;
-  if (name === "light") root.setAttribute("data-theme", "light");
-  else root.removeAttribute("data-theme");
+  document.documentElement.dataset.theme = name === "dark" ? "dark" : "light";
 }
 
 function initTheme() {
-  applyTheme(readStored("theme") === "light" ? "light" : "dark");
+  applyTheme(readStored("theme") === "dark" ? "dark" : "light");
 
   el("theme-toggle").addEventListener("click", () => {
-    const next = document.documentElement.hasAttribute("data-theme") ? "dark" : "light";
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     applyTheme(next);
     writeStored("theme", next);
   });
