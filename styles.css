@@ -130,11 +130,27 @@ i, em, cite, dfn, address { font-style: normal; }
 }
 
 /* once split, the landing grid becomes a single column of the same cards —
-   just without the guided intro or the logo panels */
-.stage.is-split .win-list .nav-intro { display: none; }
+   just without the guided intro or the logo panels. Every change here eases
+   in step with the column slide (see the transitions on each element below)
+   rather than snapping, so `display:none` is avoided. */
+.stage.is-split .win-list .nav-intro {
+  max-height: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+}
 .stage.is-split .win-list .nav-cards { padding: 12px; }
-.stage.is-split .win-list .nav-grid { grid-template-columns: 1fr; gap: 8px; }
-.stage.is-split .win-list .nav-card-logo { display: none; }
+/* one column that shrinks to the rail — no 210px track minimum to overflow */
+.stage.is-split .win-list .nav-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.stage.is-split .win-list .nav-card .nav-card-logo {
+  height: 0;
+  padding: 0;
+  border-bottom-width: 0;
+  opacity: 0;
+}
 .stage.is-split .win-list .nav-group { max-width: none; }
 .stage.is-split .win-list .nav-group + .nav-group { margin-top: 18px; }
 .stage.is-wide .win-list .win-count { display: none; }
@@ -204,18 +220,24 @@ i, em, cite, dfn, address { font-style: normal; }
 
 /* the landing view — a guided intro, then a grid of gallery cards per group */
 .nav-cards {
+  min-width: 0;
   min-height: 0;
+  overflow-x: hidden;   /* the card grid must fit the rail — never scroll sideways */
   overflow-y: auto;
   padding: clamp(20px, 4vw, 44px) clamp(18px, 4vw, 48px) 40px;
   scrollbar-width: thin;
   scrollbar-color: var(--hair) transparent;
+  transition: padding .30s ease;
 }
 .nav-cards::-webkit-scrollbar { width: 7px; }
 .nav-cards::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 0; }
 
 .nav-intro {
   max-width: 1040px;
+  max-height: 8rem;
   margin: 0 0 34px;
+  overflow: hidden;
+  transition: max-height .30s ease, opacity .22s ease, margin-bottom .30s ease;
 }
 .nav-hello {
   font-family: var(--mono);
@@ -248,6 +270,7 @@ i, em, cite, dfn, address { font-style: normal; }
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 12px;
+  transition: gap .30s ease;
 }
 
 /* one card = one button: an optional logo panel, then name + "what it is" */
@@ -273,6 +296,9 @@ i, em, cite, dfn, address { font-style: normal; }
   padding: 14px 18px;
   background: var(--panel);
   border-bottom: 1px solid var(--hair);
+  overflow: hidden;
+  transition: height .30s ease, padding .30s ease, opacity .22s ease,
+    border-bottom-width .30s ease;
 }
 .nav-card-logo img {
   max-width: 100%;

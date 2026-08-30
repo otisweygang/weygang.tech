@@ -252,6 +252,17 @@ window.addEventListener("resize", () => {
   });
 });
 
+// The list column width tweens for ~0.3s on split / wide / close. Re-fit the
+// headers every frame across that window so a URL never briefly wraps.
+function trackCardNames(ms = 360) {
+  const start = performance.now();
+  const step = (now) => {
+    fitCardNames();
+    if (now - start < ms) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 
 /* Detail pane — open / close / expand */
 
@@ -268,7 +279,7 @@ function openDetail(item, cardNode) {
 
   el("win-detail").hidden = false;
   el("stage").classList.add("is-split"); // grid collapses to a rail, preview slides in
-  setTimeout(fitCardNames, 340); // re-fit once the rail has finished narrowing
+  trackCardNames(); // keep the URL headers fitted through the column slide
 
   // A website opens on its live preview. A code-only project has nothing to
   // frame, so it opens straight into the source split — README rendered on
@@ -281,9 +292,9 @@ function openDetail(item, cardNode) {
 function closeDetail() {
   const stage = el("stage");
   stage.classList.remove("is-split", "is-wide");
+  trackCardNames(); // re-fit as the grid widens back out
   setTimeout(() => {
     if (!stage.classList.contains("is-split")) el("win-detail").hidden = true;
-    fitCardNames(); // grid is back to full width — re-fit the headers
   }, 320);
 
   for (const selected of document.querySelectorAll(".nav-card.is-selected")) {
@@ -295,7 +306,7 @@ function closeDetail() {
 // Expanded: detail takes ~80%, the list shrinks to a thin rail.
 function toggleWide() {
   el("stage").classList.toggle("is-wide");
-  setTimeout(fitCardNames, 340);
+  trackCardNames();
 }
 
 // The titlebar path: while previewing, the live URL — or README.md for a
