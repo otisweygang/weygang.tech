@@ -30,16 +30,6 @@ const GITHUB_USERNAME = "otisweygang";
 
 const websites = [
   {
-    name: "bonezbizarre.com",
-    slug: "bonez",
-    what: "Static artist portfolio",
-    desc: "Artist portfolio — painting, photography, installations. Hand-built, no framework.",
-    tags: ["JS", "HTML", "CSS"],
-    url: "https://bonezbizarre.com",
-    repo: "https://github.com/otisweygang/bonez",
-    logo: "./assets/logos/bonez-bizarre-logo.svg",
-  },
-  {
     name: "icahd.org",
     slug: "icahd",
     what: "Human rights landing site",
@@ -50,16 +40,6 @@ const websites = [
     logo: "./assets/logos/icahd-logo.svg",
   },
   {
-    name: "mamba-uk.com",
-    slug: "mamba",
-    what: "Static artist portfolio",
-    desc: "Business site, hand-built. Short line about the site and your role on it.",
-    tags: ["JS", "HTML", "CSS"],
-    url: "https://mamba-uk.com",
-    repo: "https://github.com/otisweygang/mamba",
-    logo: "./assets/logos/mamba-logo.png",
-  },
-  {
     name: "thegentlehand.netlify.app",
     slug: "gentle-hand",
     what: "Feature film landing site",
@@ -68,6 +48,26 @@ const websites = [
     url: "https://thegentlehand.netlify.app",
     repo: "https://github.com/otisweygang/atta",
     logo: "./assets/logos/atta-palio-films-logo.png",
+  },
+  {
+    name: "bonezbizarre.com",
+    slug: "bonez",
+    what: "Static artist portfolio",
+    desc: "Artist portfolio — painting, photography, installations. Hand-built, no framework.",
+    tags: ["JS", "HTML", "CSS"],
+    url: "https://bonezbizarre.com",
+    repo: "https://github.com/otisweygang/bonez",
+    logo: "./assets/logos/bonez-bizarre-logo.svg",
+  },
+  {
+    name: "mamba-uk.com",
+    slug: "mamba",
+    what: "Static artist portfolio",
+    desc: "Business site, hand-built. Short line about the site and your role on it.",
+    tags: ["JS", "HTML", "CSS"],
+    url: "https://mamba-uk.com",
+    repo: "https://github.com/otisweygang/mamba",
+    logo: "./assets/logos/mamba-logo.png",
   },
 ];
 
