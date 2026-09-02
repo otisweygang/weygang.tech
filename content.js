@@ -41,7 +41,7 @@ window.siteContent = {
       repo: "otisweygang/mamba",
     },
     {
-      name: "siteprobe",
+      name: "urlstatuscheck",
       category: "projects",
       description: "Concurrent URL health checker  [Go, CLI, stdlib]",
       url: "https://github.com/otisweygang/siteprobe",
@@ -135,7 +135,7 @@ window.siteContent = {
     { name: "whoami", summary: "existential", chip: true },
     { name: "ls", summary: "list projects", chip: true },
     { name: "open", summary: "open a project preview", chip: true, chipText: "open bonezbizarre.com" },
-    { name: "cat", summary: "print what a project is", chip: true, chipText: "cat siteprobe" },
+    { name: "cat", summary: "print what a project is", chip: true, chipText: "cat urlstatuscheck" },
     { name: "cd", summary: "walk the (pretend) filesystem", chip: true, chipText: "cd projects" },
     { name: "pwd", summary: "print the current path", chip: true },
     { name: "echo", summary: "say it back", chip: true, chipText: "echo hello" },
