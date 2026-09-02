@@ -21,6 +21,9 @@
   }
 
   function resolvePreview(project) {
+    if (window.projectDemo && window.projectDemo.has(project.name)) {
+      return { kind: "demo" };
+    }
     if (project.preview) {
       return project.preview;
     }
@@ -55,13 +58,51 @@
       panel.classList.add("is-open");
     });
 
-    if (preview.kind === "repo") {
+    if (preview.kind === "demo") {
+      renderDemo(project);
+    } else if (preview.kind === "repo") {
       body.innerHTML = "";
       renderRepo(preview.repo, body);
     } else if (preview.kind === "pdf") {
       renderPdf(project.url);
     } else {
       renderWebsite(project);
+    }
+  }
+
+  // Split view: a scripted terminal demo up top, the GitHub source browser below,
+  // switched with two tabs. The demo repaints its typing animation each time it is
+  // shown, so we build both panes once and just toggle a class.
+  function renderDemo(project) {
+    const repo =
+      project.repo ||
+      (/github\.com\/([^/]+\/[^/]+?)(?:\.git)?\/?$/.exec(project.url || "") || [])[1] ||
+      null;
+
+    body.innerHTML =
+      `<div class="preview-tabs">` +
+      `<button class="preview-tab is-active" data-pane="demo">demo</button>` +
+      (repo ? `<button class="preview-tab" data-pane="source">source</button>` : "") +
+      `</div>` +
+      `<div class="preview-pane is-active" id="pane-demo"></div>` +
+      (repo ? `<div class="preview-pane" id="pane-source"></div>` : "");
+
+    window.projectDemo.render(project.name, body.querySelector("#pane-demo"));
+
+    let sourceLoaded = false;
+    const tabs = body.querySelectorAll(".preview-tab");
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => {
+        for (const other of tabs) other.classList.remove("is-active");
+        tab.classList.add("is-active");
+        for (const pane of body.querySelectorAll(".preview-pane")) {
+          pane.classList.toggle("is-active", pane.id === `pane-${tab.dataset.pane}`);
+        }
+        if (tab.dataset.pane === "source" && repo && !sourceLoaded) {
+          sourceLoaded = true;
+          renderRepo(repo, body.querySelector("#pane-source"));
+        }
+      });
     }
   }
 

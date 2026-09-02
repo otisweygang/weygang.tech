@@ -622,8 +622,13 @@ async function runBootSequence() {
   const largest = Math.max(1, ...categories.map((category) => category.count));
   for (const category of categories) {
     const label = "  " + category.name;
-    const countText = `${category.count} item${category.count === 1 ? "" : "s"}`;
-    await terminal.progressBar(label, boot.barDuration, category.count / largest, countText);
+    if (category.name === "websites") {
+      const countText = `${category.count} item${category.count === 1 ? "" : "s"}`;
+      await terminal.progressBar(label, boot.barDuration, category.count / largest, countText);
+    } else {
+      terminal.print(label.padEnd(22, " ") + "[ ok ]", "dim");
+      await wait(boot.barDuration);
+    }
   }
   terminal.print("");
   await wait(200);
