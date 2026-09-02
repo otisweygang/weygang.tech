@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weygang</title>
+  <title>weygang // not boring</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,80 +11,61 @@
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     rel="stylesheet"
   />
-
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
 
-  <div class="frame">
+  <div class="crt">
+    <canvas class="starfield" id="starfield"></canvas>
+    <div class="crt-sweep"></div>
 
-    <header class="bar bar-top">
-      <span class="mark">weygang<span class="caret">_</span></span>
-      <span class="bar-right">
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle colour theme">
-          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-          </svg>
-          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-          </svg>
-        </button>
-        <a class="gh" href="https://github.com/otisweygang" target="_blank" rel="noopener">github &nearr;</a>
+    <header class="header">
+      <span class="brand">weygang<span class="blink">_</span></span>
+      <span class="header-actions">
+        <button id="help-button" type="button">[help]</button>
+        <button id="theme-button" type="button">[theme]</button>
+        <button id="reboot-button" type="button">[reboot]</button>
       </span>
     </header>
 
-    <!-- the tiling area: card list | detail window (slides in) -->
-    <main class="stage" id="stage">
-
-      <section class="win win-list" id="win-list">
-        <div class="win-bar">
-          <span class="win-path">~/weygang</span>
-          <span class="win-count" id="list-count"></span>
-        </div>
-        <div class="nav-cards" id="cards"><!-- filled by app.js --></div>
-      </section>
-
-      <section class="win win-detail" id="win-detail" hidden>
-        <div class="win-bar">
-          <span class="win-path" id="detail-path">~/</span>
-          <span class="win-tabs">
-            <button class="win-tab is-active" data-view="preview" type="button">preview</button>
-            <button class="win-tab" data-view="source" type="button">source</button>
-            <button class="win-icon win-expand" id="detail-expand" type="button" aria-label="Expand pane">
-              <svg class="ic ic-expand" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 4h6v6M20 4l-7 7" />
-                <path d="M10 20H4v-6M4 20l7-7" />
-              </svg>
-              <svg class="ic ic-collapse" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 10h-6V4M14 10l6-6" />
-                <path d="M4 14h6v6M10 14l-6 6" />
-              </svg>
-            </button>
-            <button class="win-icon win-close" id="detail-close" type="button" aria-label="Close">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
-          </span>
-        </div>
-        <div class="detail-body" id="detail-body"><!-- filled by app.js --></div>
-      </section>
-
-    </main>
-
-    <footer class="bar bar-bottom">
-      <span class="spacer"></span>
-      <span class="utc" id="utc">------ --:--:-- UTC</span>
-    </footer>
-
+    <main class="terminal" id="terminal"></main>
   </div>
 
-  <script src="./app.js"></script>
+  <div class="preview-backdrop" id="preview-backdrop" hidden></div>
+  <aside class="preview" id="preview" hidden>
+    <div class="preview-bar">
+      <span class="preview-title" id="preview-title"></span>
+      <span class="preview-actions">
+        <a class="preview-open" id="preview-open" target="_blank" rel="noopener"></a>
+        <button class="preview-close" id="preview-close" type="button"></button>
+      </span>
+    </div>
+    <div class="preview-body" id="preview-body"></div>
+  </aside>
+
+  <div class="help-backdrop" id="help-backdrop" hidden></div>
+  <aside class="help-panel" id="help-panel" hidden>
+    <div class="help-bar">
+      <span class="help-title" id="help-title"></span>
+      <button class="help-close" id="help-close" type="button">×</button>
+    </div>
+    <div class="help-body" id="help-body"></div>
+  </aside>
+
+  <div class="matrix" id="matrix" hidden>
+    <div class="matrix-hint">// press ESC or click to return</div>
+  </div>
+
+  <div class="crash" id="crash" hidden>
+    <div class="crash-face">:(</div>
+    <p>Your portfolio ran into a problem described as <b>"too boring"</b> and needs to restart.</p>
+    <p>We're just collecting some error info, and then we'll pretend this never happened.</p>
+    <p class="crash-progress" id="crash-progress">0% complete</p>
+    <small>Stop code: BORING_TESTER_EXCEPTION &nbsp;·&nbsp; click anywhere to recover</small>
+  </div>
+
+  <script src="./content.js"></script>
+  <script src="./preview.js"></script>
+  <script src="./main.js"></script>
 </body>
 </html>

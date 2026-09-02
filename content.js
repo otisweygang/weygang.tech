@@ -1,0 +1,208 @@
+window.siteContent = {
+  brand: "weygang",
+
+  headerLinks: [
+    { label: "[github]", url: "https://github.com/otisweygang" },
+  ],
+
+  categories: {
+    websites: "websites",
+    projects: "projects",
+    cv: "cv",
+  },
+  categoryOrder: ["websites", "projects", "cv"],
+
+  projects: [
+    {
+      name: "icahd.org",
+      category: "websites",
+      description: "Human rights landing site  [Astro, TS, HTML, CSS]",
+      url: "https://icahd.org",
+    },
+    {
+      name: "thegentlehand.netlify.app",
+      category: "websites",
+      description: "Feature film landing site  [JS, HTML, CSS]",
+      url: "https://thegentlehand.netlify.app",
+      repo: "otisweygang/atta",
+    },
+    {
+      name: "bonezbizarre.com",
+      category: "websites",
+      description: "Static artist portfolio  [JS, HTML, CSS]",
+      url: "https://bonezbizarre.com",
+      repo: "otisweygang/bonez",
+    },
+    {
+      name: "mamba-uk.com",
+      category: "websites",
+      description: "Static artist portfolio  [JS, HTML, CSS]",
+      url: "https://mamba-uk.com",
+      repo: "otisweygang/mamba",
+    },
+    {
+      name: "siteprobe",
+      category: "projects",
+      description: "Concurrent URL health checker  [Go, CLI, stdlib]",
+      url: "https://github.com/otisweygang/siteprobe",
+      preview: { kind: "repo", repo: "otisweygang/siteprobe" },
+    },
+    {
+      name: "cv",
+      category: "cv",
+      description: "One-page CV (PDF)",
+      url: "/assets/Otis_Weygang_CV_redacted.pdf",
+      preview: { kind: "pdf" },
+    },
+  ],
+
+  about: [
+    "Otis Weygang — builds small, fast, hand-made websites and the odd CLI tool.",
+    "Prefers static output, no build step where one isn't earned, and code you can read.",
+    "This page exists because a tester said the real portfolio was boring. Fair.",
+  ],
+
+  whoami: [
+    "visitor",
+    "(but if you're the tester: hi, was this less boring?)",
+  ],
+
+  themes: ["green", "amber", "paper"],
+  themeStorageKey: "test-theme",
+
+  preview: {
+    desktopWidth: 1440,
+    desktopHeight: 900,
+    openLabel: "open ↗",
+    closeLabel: "×",
+    downloadLabel: "download",
+    loading: "loading…",
+    websiteBlocked: "this site won't load inside a frame.",
+    noRepo: "source not published for this one.",
+    repoRoot: "root",
+    repoErrors: {
+      notFound: "not found",
+      rateLimited: "GitHub rate limit hit — try again in a bit",
+      private: "private repo — source not shown",
+      generic: "could not load ({status})",
+    },
+  },
+
+  boot: {
+    detecting: "Loading portfolio...",
+    barDuration: 420,
+    bannerArt: [
+  "██╗    ██╗███████╗██╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ ",
+  "██║    ██║██╔════╝╚██╗ ██╔╝██╔════╝ ██╔══██╗████╗  ██║██╔════╝ ",
+  "██║ █╗ ██║█████╗   ╚████╔╝ ██║  ███╗███████║██╔██╗ ██║██║  ███╗",
+  "██║███╗██║██╔══╝    ╚██╔╝  ██║   ██║██╔══██║██║╚██╗██║██║   ██║",
+  "╚███╔███╔╝███████╗   ██║   ╚██████╔╝██║  ██║██║ ╚████║╚██████╔╝",
+  " ╚══╝╚══╝ ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ",
+],
+    ready: "click a button below or type `help` and press Enter",
+  },
+
+  matrix: {
+    intro: "wake up, Neo...",
+  },
+
+  crash: {
+    countdown: ["triggering kernel panic in 3...", "2...", "1..."],
+    recovered: "...and we're back. (nothing actually crashed)",
+  },
+
+  konami: {
+    reward:
+      "Up Up Down Down Left Right Left Right B A  —  30 lives granted. use them on something less boring.",
+  },
+
+  messages: {
+    commandNotFound: "{name}: command not found",
+    tryHelp: "run `help` for the list",
+    helpHeading: "available commands:",
+    helpFooter: "also: the Konami code  ·  Up / Down for history  ·  Tab to complete",
+    lsHint: "open a name to visit it  →  e.g.  open bonezbizarre.com",
+    openUsage: "usage: open <name>   (try `ls`)",
+    openNotFound: "open: {name}: not found. run `ls` to see what's here.",
+    catUsage: "usage: cat <name>   (try `ls`)",
+    catNotFound: "cat: {name}: no such project",
+    cdNotFound: "cd: {name}: no such directory",
+  },
+
+  commands: [
+    { name: "help", summary: "list every command", chip: true },
+    { name: "about", summary: "who is this", chip: true },
+    { name: "whoami", summary: "existential", chip: true },
+    { name: "ls", summary: "list projects", chip: true },
+    { name: "open", summary: "open a project preview", chip: true, chipText: "open bonezbizarre.com" },
+    { name: "cat", summary: "print what a project is", chip: true, chipText: "cat siteprobe" },
+    { name: "cd", summary: "walk the (pretend) filesystem", chip: true, chipText: "cd projects" },
+    { name: "pwd", summary: "print the current path", chip: true },
+    { name: "echo", summary: "say it back", chip: true, chipText: "echo hello" },
+    { name: "date", summary: "current time, UTC", chip: true },
+    { name: "theme", summary: "cycle green / amber / paper", chip: true },
+    { name: "stars", summary: "set starfield density", chip: true, chipText: "stars 500" },
+    { name: "matrix", summary: "you already know", chip: true },
+    { name: "crash", summary: "trigger a totally real system failure", chip: true },
+    { name: "clear", summary: "wipe the screen (or Ctrl-L)", chip: true },
+    { name: "reboot", summary: "replay the boot sequence", chip: true },
+    {
+      name: "sudo",
+      summary: "you are not root",
+      chip: true,
+      chipText: "sudo make me a sandwich",
+      responses: {
+        sandwich: [
+          "Okay.",
+          "      __",
+          "  .-'`  `'-.",
+          " (  .------.  )",
+          "  '-.______.-'   <- sandwich (root-authorised)",
+        ],
+        denied: [
+          "visitor is not in the sudoers file. This incident will be reported.",
+          "...to nobody. There's no server. It's just you and this page.",
+        ],
+        usage: "usage: sudo <command>",
+      },
+    },
+    {
+      name: "make",
+      summary: "no rule to make target",
+      chip: true,
+      chipText: "make me a sandwich",
+      responses: {
+        sandwich: ["What? Make it yourself.", "(hint: try `sudo`)"],
+        noRule: "make: *** No rule to make target '{target}'.  Stop.",
+      },
+    },
+    {
+      name: "rm",
+      summary: "there is nothing to remove",
+      chip: true,
+      chipText: "rm -rf /",
+      responses: {
+        blocked: ["Nice try.", "Nothing here is real enough to delete."],
+        harmless: "rm: it's a static page. There's nothing to remove.",
+      },
+    },
+    {
+      name: "vim",
+      summary: "there is no vim",
+      chip: true,
+      responses: {
+        trapped: "You're trapped forever. (just kidding — there's no vim). :q!",
+      },
+    },
+    {
+      name: "man",
+      summary: "read the manual",
+      chip: true,
+      chipText: "man ls",
+      responses: {
+        noArg: "What manual page do you want?",
+        noEntry: "No manual entry for {name}. Try `help`.",
+      },
+    },
+  ],
+};
