@@ -48,6 +48,13 @@ window.siteContent = {
       preview: { kind: "repo", repo: "otisweygang/siteprobe" },
     },
     {
+      name: "minilab-demo",
+      category: "projects",
+      description: "PVD control HMI simulator  [JS, HTML, CSS]",
+      url: "./demos/minilab/index.html",
+      repo: "otisweygang/minilab-demo",
+    },
+    {
       name: "cv",
       category: "cv",
       description: "One-page CV (PDF)",

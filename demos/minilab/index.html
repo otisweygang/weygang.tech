@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MiniLab Control HMI</title>
+<meta name="description" content="An operator control screen for Moorfield's MiniLab PVD systems — P&ID mimic, faceplates, an interlocked recipe sequencer and live trends, driven by a plausible process model. Switch between the 026 and 125 builds from the toolbar." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23c8ccd0'/%3E%3Crect x='4' y='4' width='24' height='24' rx='2' fill='%23eef1f2' stroke='%23a7adb2'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%232f6fb0' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%231f8a4c'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./shared/styles.css" />
+</head>
+<body>
+
+<div class="hmi" id="hmi">
+
+  <!-- ============ top status bar ============ -->
+  <header class="statusbar">
+    <div class="sb-id">
+      <span class="sb-tag" id="machine-name">MiniLab</span>
+      <span class="sb-unit" id="machine-unit"></span>
+    </div>
+    <select class="sb-machine" id="machine-pick" aria-label="Machine">
+      <option value="026">MiniLab 026</option>
+      <option value="125" selected>MiniLab 125</option>
+    </select>
+    <nav class="sb-viewtabs" role="tablist" aria-label="Screen">
+      <button class="vtab is-active" id="vtab-hmi" role="tab" aria-selected="true" data-view="hmi">HMI</button>
+      <button class="vtab" id="vtab-learn" role="tab" aria-selected="false" data-view="learn">LEARN</button>
+      <button class="vtab" id="vtab-data" role="tab" aria-selected="false" data-view="data">DATA</button>
+    </nav>
+    <div class="sb-mode">
+      <span class="sb-mode-lbl">MODE</span>
+      <span class="sb-mode-val" id="sys-mode" data-mode="standby">STANDBY</span>
+    </div>
+    <div class="sb-clock">
+      <span class="sb-clock-lbl">TIME</span>
+      <span class="sb-clock-val" id="proc-clock">00:00:00</span>
+    </div>
+    <div class="sb-comms">
+      <span class="led led-ok" id="comms-led"></span>
+      <span>HMI link</span>
+    </div>
+    <button class="btn-abort" id="btn-abort" type="button">
+      <span class="btn-abort-key">■</span> ABORT
+    </button>
+  </header>
+
+  <!-- ================= HMI VIEW ================= -->
+  <div class="hmi-body" id="view-hmi">
+
+    <!-- centre: P&ID mimic -->
+    <section class="mimic-wrap" aria-label="Process and instrumentation mimic">
+      <div class="faceplate mimic-face">
+        <div class="faceplate-bar">
+          <span id="mimic-chamber-label">CHAMBER MIMIC</span>
+          <span class="fp-hint">click a valve</span>
+        </div>
+        <div class="mimic-inner">
+          <svg class="mimic" id="mimic" viewBox="0 0 640 400" role="img" aria-labelledby="mimic-desc">
+            <title id="mimic-desc">Piping and instrumentation mimic of the active MiniLab</title>
+
+            <g class="pipes">
+              <path id="pipe-gas" class="pipe" d="M60 80 H150 M186 80 H300 V130" />
+              <path id="pipe-vac" class="pipe" d="M340 300 V340 H150 M114 340 H70 V262 M70 228 V206" />
+              <path id="pipe-vent" class="pipe" d="M430 240 H520 V300" />
+            </g>
+            <g class="flow">
+              <path id="flow-gas" class="flow-line" d="M60 80 H150 M186 80 H300 V130" />
+              <path id="flow-vac" class="flow-line" d="M340 300 V340 H150 M114 340 H70 V262 M70 228 V206" />
+              <path id="flow-vent" class="flow-line" d="M430 240 H520 V300" />
+            </g>
+
+            <rect class="mimic-vessel" x="300" y="130" width="130" height="180" rx="10" />
+            <rect class="mimic-void" x="310" y="140" width="110" height="160" rx="6" />
+            <text class="mimic-lbl" x="365" y="124" text-anchor="middle">DEPOSITION CHAMBER</text>
+
+            <g class="platen-grp">
+              <line x1="365" y1="130" x2="365" y2="152" class="platen-stem" />
+              <rect x="330" y="152" width="70" height="9" rx="2" class="platen-bar" />
+              <rect id="qcm-crystal" x="352" y="161" width="26" height="6" rx="1" class="qcm" />
+              <text class="mimic-tag" x="410" y="159">QCM1</text>
+            </g>
+
+            <g id="shutter" class="shutter" data-open="false">
+              <rect x="322" y="186" width="86" height="7" rx="2" class="shutter-blade" />
+              <text class="mimic-tag" x="410" y="193">SHU</text>
+            </g>
+
+            <!-- populated per-machine by buildMimicSources() -->
+            <g class="mimic-sources" id="mimic-sources"></g>
+            <text class="mimic-tag" x="365" y="330" text-anchor="middle" id="mimic-src-caption"></text>
+
+            <g class="gauge-tap" transform="translate(452,172)">
+              <line x1="-22" y1="0" x2="0" y2="0" class="pipe" />
+              <circle r="19" class="gauge-face" />
+              <text class="gauge-val" id="pi-chamber" text-anchor="middle" y="-2">1e0</text>
+              <text class="gauge-unit" text-anchor="middle" y="9">mbar</text>
+              <text class="mimic-tag" x="0" y="32" text-anchor="middle">PI&#8209;01</text>
+            </g>
+
+            <g class="kit gas-bottle" transform="translate(44,80)">
+              <rect x="-15" y="-24" width="30" height="48" rx="7" />
+              <text class="mimic-tag" x="0" y="38" text-anchor="middle">Ar</text>
+            </g>
+            <g id="mfc" class="kit mfc" transform="translate(168,80)">
+              <rect x="-17" y="-13" width="34" height="26" rx="3" />
+              <text class="mfc-val" id="mfc-read" text-anchor="middle" y="4">0</text>
+              <text class="mimic-tag" x="0" y="28" text-anchor="middle">MFC&#8209;Ar</text>
+            </g>
+
+            <g class="valve" id="v-gas" data-open="false" transform="translate(120,80)">
+              <polygon points="-8,-8 0,0 -8,8" />
+              <polygon points="8,-8 0,0 8,8" />
+              <text class="mimic-tag" x="0" y="-14" text-anchor="middle">V&#8209;GAS</text>
+            </g>
+            <g class="valve" id="v-gate" data-open="false" transform="translate(132,340)">
+              <polygon points="-8,-8 0,0 -8,8" />
+              <polygon points="8,-8 0,0 8,8" />
+              <text class="mimic-tag" x="0" y="22" text-anchor="middle">V&#8209;GATE</text>
+            </g>
+            <g class="valve" id="v-vent" data-open="false" transform="translate(520,270)">
+              <polygon points="-8,-8 0,0 -8,8" />
+              <polygon points="8,-8 0,0 8,8" />
+              <text class="mimic-tag" x="15" y="4" text-anchor="start">V&#8209;VENT</text>
+            </g>
+
+            <g class="kit pump-turbo" id="pump-turbo" transform="translate(70,244)">
+              <circle r="20" />
+              <path class="turbo-blades" d="M0,-14 A14 14 0 0 1 12,7 M12,7 A14 14 0 0 1 -12,7 M-12,7 A14 14 0 0 1 0,-14" />
+            </g>
+            <text class="mimic-tag" x="96" y="240" text-anchor="start">TURBO</text>
+            <g class="kit pump-backing" transform="translate(70,282)">
+              <rect x="-15" y="-10" width="30" height="18" rx="3" />
+            </g>
+            <text class="mimic-tag" x="96" y="286" text-anchor="start">BACKING</text>
+            <text class="mimic-tag exhaust" x="70" y="196" text-anchor="middle">exhaust ▲</text>
+            <text class="mimic-tag vent-atm" x="520" y="318" text-anchor="middle">▼ N₂ vent</text>
+          </svg>
+          <canvas class="mimic-fx" id="mimic-fx"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- right: faceplate stack -->
+    <section class="faceplates" aria-label="Control faceplates">
+
+      <div class="faceplate">
+        <div class="faceplate-bar"><span>SOURCE &amp; POWER</span><span class="fp-tag" id="src-mat"></span></div>
+        <div class="fp-body">
+          <div class="fp-row fp-select">
+            <label for="src-pick">Source</label>
+            <select id="src-pick"></select>
+          </div>
+          <div class="fp-sp" data-tag="power">
+            <div class="fp-sp-head"><span class="fp-sp-name">Cathode power</span><span class="fp-sp-unit">W</span></div>
+            <div class="fp-sp-io">
+              <span class="fp-sp-pv" id="pv-power">0</span>
+              <span class="fp-sp-arrow">SP</span>
+              <input class="fp-sp-in" id="sp-power" type="number" min="0" step="25" />
+            </div>
+            <div class="bar"><i id="bar-power"></i></div>
+          </div>
+          <button class="fp-btn" id="btn-plasma" type="button" data-on="false">STRIKE PLASMA</button>
+        </div>
+      </div>
+
+      <div class="faceplate">
+        <div class="faceplate-bar"><span>GAS &amp; VACUUM</span></div>
+        <div class="fp-body">
+          <div class="fp-sp" data-tag="flow">
+            <div class="fp-sp-head"><span class="fp-sp-name">Ar flow</span><span class="fp-sp-unit">sccm</span></div>
+            <div class="fp-sp-io">
+              <span class="fp-sp-pv" id="pv-flow">0.0</span>
+              <span class="fp-sp-arrow">SP</span>
+              <input class="fp-sp-in" id="sp-flow" type="number" min="0" step="1" />
+            </div>
+            <div class="bar"><i id="bar-flow"></i></div>
+          </div>
+          <dl class="fp-readouts">
+            <div><dt>Chamber</dt><dd id="ro-p-chamber">1.0e+0 mbar</dd></div>
+            <div><dt>Pump</dt><dd id="ro-pump">idle</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="faceplate">
+        <div class="faceplate-bar"><span>SUBSTRATE</span></div>
+        <div class="fp-body">
+          <div class="fp-sp" data-tag="temp">
+            <div class="fp-sp-head"><span class="fp-sp-name">Platen heater</span><span class="fp-sp-unit">°C</span></div>
+            <div class="fp-sp-io">
+              <span class="fp-sp-pv" id="pv-temp">22</span>
+              <span class="fp-sp-arrow">SP</span>
+              <input class="fp-sp-in" id="sp-temp" type="number" min="20" max="800" step="10" />
+            </div>
+            <div class="bar"><i id="bar-temp"></i></div>
+          </div>
+          <div class="fp-row fp-toggle">
+            <span>Shutter</span>
+            <button class="fp-btn fp-btn-sm" id="btn-shutter" type="button" data-open="false">CLOSED</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="faceplate faceplate-thick">
+        <div class="faceplate-bar"><span>QCM1 · THICKNESS</span></div>
+        <div class="fp-body fp-thick">
+          <div class="thick-big">
+            <span class="thick-val" id="qcm-thick">0.0</span>
+            <span class="thick-unit">nm</span>
+          </div>
+          <dl class="fp-readouts">
+            <div><dt>Rate</dt><dd id="qcm-rate">0.00 nm/s</dd></div>
+            <div><dt>Target</dt><dd id="qcm-target">0.0 nm</dd></div>
+          </dl>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- left rail: recipe sequencer -->
+    <section class="faceplate seq" aria-label="Recipe sequencer">
+      <div class="faceplate-bar"><span id="recipe-label">RECIPE</span><span class="fp-tag" id="seq-state">STOPPED</span></div>
+      <div class="fp-body seq-body">
+        <ol class="seq-list" id="seq-list"></ol>
+        <div class="seq-ctl">
+          <button class="fp-btn" id="btn-seq-start" type="button">START</button>
+          <button class="fp-btn fp-btn-ghost" id="btn-seq-hold" type="button" disabled>HOLD</button>
+          <button class="fp-btn fp-btn-ghost" id="btn-seq-skip" type="button" disabled>SKIP&nbsp;▸</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- bottom: trends + alarms -->
+    <section class="faceplate trends" aria-label="Process trends">
+      <div class="faceplate-bar">
+        <span>TRENDS</span>
+        <span class="trend-key">
+          <i class="tk tk-p"></i>P&nbsp;<i class="tk tk-w"></i>W&nbsp;<i class="tk tk-t"></i>T&nbsp;<i class="tk tk-d"></i>nm
+        </span>
+      </div>
+      <div class="fp-body trend-body">
+        <canvas id="trend" width="1200" height="140"></canvas>
+      </div>
+    </section>
+
+    <section class="faceplate alarms" aria-label="Alarm and event list">
+      <div class="faceplate-bar">
+        <span>ALARMS &amp; EVENTS</span>
+        <button class="fp-btn fp-btn-sm" id="btn-ack" type="button">ACK ALL</button>
+      </div>
+      <div class="fp-body alarm-body">
+        <table class="alarm-table">
+          <tbody id="alarm-rows">
+            <tr class="alarm-empty"><td colspan="5">No active alarms.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ================= LEARN VIEW ================= -->
+  <div class="learn-view" id="view-learn" hidden>
+    <nav class="learn-nav">
+      <button class="ln-link is-active" data-sec="sec-glossary">Glossary</button>
+      <button class="ln-link" data-sec="sec-recipe">Recipe walkthrough</button>
+      <button class="ln-link" data-sec="sec-interlock">Interlock matrix</button>
+      <span class="ln-live"><span class="led led-ok"></span>sim running live</span>
+    </nav>
+
+    <section class="learn-panel" id="sec-glossary">
+      <div class="faceplate-bar"><span>GLOSSARY</span></div>
+      <div class="lp-body">
+        <dl class="glossary" id="glossary"></dl>
+      </div>
+    </section>
+
+    <section class="learn-panel" id="sec-recipe" hidden>
+      <div class="faceplate-bar"><span id="walk-title">RECIPE WALKTHROUGH</span></div>
+      <div class="lp-body">
+        <div class="tagtable-wrap">
+          <table class="walk-table" id="walk-table">
+            <thead>
+              <tr><th>Step</th><th>End condition</th><th>What the sequencer does</th><th>Why (the physics)</th><th>Failure mode</th></tr>
+            </thead>
+            <tbody id="walk-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="learn-panel" id="sec-interlock" hidden>
+      <div class="faceplate-bar"><span>INTERLOCK MATRIX</span></div>
+      <div class="lp-body">
+        <div class="tagtable-wrap">
+          <table class="matrix-table" id="matrix">
+            <thead>
+              <tr><th>Condition</th><th>Blocks</th><th>Alarm</th><th>Why</th><th>Fix</th></tr>
+            </thead>
+            <tbody id="matrix-rows"></tbody>
+          </table>
+        </div>
+        <p class="lp-note">ABORT ≠ interlock — it's an operator command that forces a safe state: power to zero, shutter closed, gas off, V&#8209;GATE held open.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= DATA VIEW ================= -->
+  <div class="learn-view" id="view-data" hidden>
+    <section class="learn-panel" id="sec-tags">
+      <div class="faceplate-bar">
+        <span>TAG DATABASE</span>
+        <span class="ln-live"><span class="led led-ok"></span>sim running live</span>
+      </div>
+      <div class="lp-body">
+        <div class="tagfilter">
+          <input type="text" id="tag-filter" placeholder="filter — pressure, valve, QCM…" />
+          <span class="tagfilter-count" id="tag-count"></span>
+        </div>
+        <div class="tagtable-wrap">
+          <table class="tagtable" id="tagtable">
+            <thead>
+              <tr>
+                <th data-k="tag">Tag</th>
+                <th data-k="kind">Kind</th>
+                <th data-k="desc">What it is</th>
+                <th data-k="unit">Unit</th>
+                <th data-k="range">Range</th>
+                <th data-k="where">On screen</th>
+                <th data-k="live">Live</th>
+              </tr>
+            </thead>
+            <tbody id="tag-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section class="learn-panel" id="sec-spec">
+      <div class="faceplate-bar"><span>DATASHEET SPECIFICATION</span></div>
+      <div class="lp-body">
+        <table class="spec-table">
+          <tbody id="spec-rows"></tbody>
+        </table>
+        <p class="spec-note" id="spec-note"></p>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+<script src="./shared/machines.js"></script>
+<script src="./shared/minilab-core.js"></script>
+</body>
+</html>
