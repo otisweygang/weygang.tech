@@ -157,17 +157,16 @@ const commandHandlers = {
         continue;
       }
       const label = (content.categories && content.categories[category.name]) || category.name;
-      term.print(label, "accent");
+      term.print("  " + label, "dim");
       for (const project of members) {
         term.printHtml(
-          "  " +
+          "    " +
             `<button class="inline-link" data-open="${project.name}">${escapeHtml(project.name)}</button>` +
             `<span class="faint">${" ".repeat(nameWidth - project.name.length)}${escapeHtml(project.description)}</span>`,
         );
       }
       term.print("");
     }
-    term.print(content.messages.lsHint, "faint");
   },
 
   open(term, args) {
@@ -311,7 +310,8 @@ const commands = content.commands.map((entry) => ({
 
 
 function buildHeader() {
-  document.querySelector(".brand").textContent = content.brand;
+  const brandEl = document.querySelector(".brand");
+  brandEl.firstChild.textContent = content.brand;
   const actions = document.querySelector(".header-actions");
   for (const link of content.headerLinks) {
     const anchor = document.createElement("a");
@@ -328,7 +328,7 @@ function buildPrompt() {
   promptRow = document.createElement("div");
   promptRow.className = "prompt";
   promptRow.innerHTML =
-    `<span class="prompt-label">visitor@weygang<span class="path"> ${currentPath} </span>$</span>` +
+    `<span class="prompt-label">visitor<span class="path"> ${currentPath} </span>$</span>` +
     `<span class="prompt-input" contenteditable="true" spellcheck="false" autocapitalize="off" autocorrect="off"></span>` +
     `<span class="prompt-cursor"></span>`;
   terminalEl.appendChild(promptRow);
@@ -406,7 +406,7 @@ function focusPrompt() {
 
 function echoCommandLine(text) {
   terminal.printHtml(
-    `<span class="prompt-label">visitor@weygang<span class="path"> ${currentPath} </span>$</span> ${escapeHtml(text)}`,
+    `<span class="prompt-label">visitor<span class="path"> ${currentPath} </span>$</span> ${escapeHtml(text)}`,
   );
 }
 
@@ -631,7 +631,7 @@ async function runBootSequence() {
     }
   }
   terminal.print("");
-  await wait(200);
+  await wait(100);
   terminal.print(boot.ready, "dim");
   terminal.print("");
 

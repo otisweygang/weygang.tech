@@ -1,5 +1,5 @@
 window.siteContent = {
-  brand: "weygang",
+  brand: "WEYGANG",
 
   headerLinks: [
     { label: "[github]", url: "https://github.com/otisweygang" },
@@ -90,7 +90,7 @@ window.siteContent = {
 
   boot: {
     detecting: "Loading portfolio...",
-    barDuration: 420,
+    barDuration: 210,
     bannerArt: [
   "██╗    ██╗███████╗██╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ ",
   "██║    ██║██╔════╝╚██╗ ██╔╝██╔════╝ ██╔══██╗████╗  ██║██╔════╝ ",
@@ -121,7 +121,6 @@ window.siteContent = {
     tryHelp: "run `help` for the list",
     helpHeading: "available commands:",
     helpFooter: "also: the Konami code  ·  Up / Down for history  ·  Tab to complete",
-    lsHint: "open a name to visit it  →  e.g.  open bonezbizarre.com",
     openUsage: "usage: open <name>   (try `ls`)",
     openNotFound: "open: {name}: not found. run `ls` to see what's here.",
     catUsage: "usage: cat <name>   (try `ls`)",
