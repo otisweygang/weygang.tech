@@ -110,7 +110,9 @@ const terminal = {
   },
 
   async progressBar(label, duration, fillRatio = 1, endText = null) {
-    const width = 24;
+    const narrow = window.innerWidth < 500;
+    const width = narrow ? 12 : 24;
+    const labelWidth = narrow ? 14 : 22;
     const steps = 20;
     const row = this.print("", "bar");
     for (let step = 0; step <= steps; step += 1) {
@@ -120,7 +122,7 @@ const terminal = {
         ? `${String(Math.round(progress * 100)).padStart(3)}%`
         : endText;
       row.innerHTML =
-        label.padEnd(22, " ") +
+        label.padEnd(labelWidth, " ") +
         `[<span class="bar-fill">${"#".repeat(filled)}</span>${"-".repeat(width - filled)}] ${trailing}`;
       this.scrollToBottom();
       await wait(duration / steps);
@@ -157,12 +159,15 @@ const commandHandlers = {
         continue;
       }
       const label = (content.categories && content.categories[category.name]) || category.name;
-      term.print("  " + label, "dim");
+      term.print("  " + label.toUpperCase(), "accent");
       for (const project of members) {
         term.printHtml(
-          "    " +
+          `<span class="ls-row">` +
             `<button class="inline-link" data-open="${project.name}">${escapeHtml(project.name)}</button>` +
-            `<span class="faint">${" ".repeat(nameWidth - project.name.length)}${escapeHtml(project.description)}</span>`,
+            `<span class="ls-pad">${" ".repeat(nameWidth - project.name.length)}</span>` +
+            `<span class="faint ls-desc">${escapeHtml(project.description)}</span>` +
+            `</span>`,
+          "ls-entry",
         );
       }
       term.print("");
@@ -620,13 +625,14 @@ async function runBootSequence() {
   await wait(220);
   const categories = projectCategories();
   const largest = Math.max(1, ...categories.map((category) => category.count));
+  const labelWidth = window.innerWidth < 500 ? 14 : 22;
   for (const category of categories) {
     const label = "  " + category.name;
     if (category.name === "websites") {
       const countText = `${category.count} item${category.count === 1 ? "" : "s"}`;
       await terminal.progressBar(label, boot.barDuration, category.count / largest, countText);
     } else {
-      terminal.print(label.padEnd(22, " ") + "[ ok ]", "dim");
+      terminal.print(label.padEnd(labelWidth, " ") + "[ ok ]", "dim");
       await wait(boot.barDuration);
     }
   }

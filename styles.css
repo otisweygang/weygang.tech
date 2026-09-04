@@ -54,7 +54,7 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--mono);
-  font-size: 15px;
+  font-size: clamp(11px, 2.6vw, 15px);
   line-height: 1.55;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -214,6 +214,7 @@ button {
   margin-top: 12px;
   padding: 6px 4px 0;
   overflow-y: auto;
+  overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--hair) transparent;
   text-shadow: var(--glow);
@@ -235,6 +236,44 @@ button {
 
 .row.dim {
   color: var(--ink-dim);
+}
+
+.row.ls-entry {
+  padding-left: 4ch;
+}
+
+.ls-row {
+  display: flex;
+}
+
+.ls-row .inline-link,
+.ls-pad {
+  flex-shrink: 0;
+  white-space: pre;
+}
+
+.ls-desc {
+  white-space: pre;
+}
+
+@media (max-width: 500px) {
+  .row.ls-entry {
+    padding-left: 2ch;
+  }
+
+  .ls-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ls-pad {
+    display: none;
+  }
+
+  .ls-desc {
+    white-space: normal;
+    padding-left: 2ch;
+  }
 }
 
 .row.faint {
@@ -267,6 +306,7 @@ button {
 .inline-link {
   color: var(--accent-2);
   border-bottom: 1px dashed currentColor;
+  text-align: left;
 }
 
 .inline-link:hover {
@@ -322,6 +362,7 @@ button {
 
 .bar {
   color: var(--ink-dim);
+  white-space: pre;
 }
 
 .bar-fill {
