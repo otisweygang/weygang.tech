@@ -89,14 +89,16 @@
     var gasIn = m.vGas ? m.flowPV : 0;
     var ventIn = m.vVent ? 4000 : 0;
 
-    var Qin = gasIn * 0.017 + ventIn * 0.02 + 2e-6;
-    var Sp = pumpSpeed * cfg.pumpConductance + 0.02;
-    var Peq = Qin / Sp;
-    if (m.vVent) Peq = Math.max(Peq, 1013);
-    var tau = m.pressure > 1 ? 3.5 : (m.pressure > 1e-2 ? 6 : 14);
-    m.pressure += (Peq - m.pressure) * DT / tau;
-    m.pressure = Math.max(m.pressure, m.base * (1 + 0.4 * Math.sin(m.t)));
-    m.pressure = Math.min(m.pressure, 1200);
+    if (m.vGate || m.vVent) {
+      var Qin = gasIn * 0.017 + ventIn * 0.02 + 2e-6;
+      var Sp = pumpSpeed * cfg.pumpConductance + 0.02;
+      var Peq = Qin / Sp;
+      if (m.vVent) Peq = Math.max(Peq, 1013);
+      var tau = m.pressure > 1 ? 3.5 : (m.pressure > 1e-2 ? 6 : 14);
+      m.pressure += (Peq - m.pressure) * DT / tau;
+      m.pressure = Math.max(m.pressure, m.base * (1 + 0.4 * Math.sin(m.t)));
+      m.pressure = Math.min(m.pressure, 1200);
+    }
 
     var flowWant = m.vGas ? m.flowSP : 0;
     m.flowPV += (flowWant - m.flowPV) * DT / 1.2;
@@ -175,7 +177,9 @@
   }
   function skipStep() {
     if (!m.seq.running) return;
-    logEvent("SEQ", "Step " + (m.seq.step + 1) + " skipped by operator");
+    var s = cfg.steps[m.seq.step];
+    if (s.force) s.force();
+    logEvent("SEQ", "Step " + (m.seq.step + 1) + " skipped by operator — completed to target");
     m.seq.step++;
     m.seq.stepT = 0;
     if (m.seq.step >= cfg.steps.length) { m.seq.running = false; m.seq.done = true; }
@@ -481,28 +485,42 @@
         case "Pumpdown":
           s.enter = function () { setValve("v-gate", true); setValve("v-gas", false); setValve("v-vent", false); };
           s.done = function () { return m.pressure <= s.pumpTarget; };
+          s.force = function () { m.pressure = s.pumpTarget; m.turboSpin = 1; };
           break;
         case "Gas stabilise":
           s.enter = function () { setValve("v-gas", true); setFlowSP(s.flowSP); };
           s.done = function (dt) { return dt >= s.dwell && Math.abs(m.flowPV - s.flowSP) < s.flowTol; };
+          s.force = function () { m.flowPV = s.flowSP; m.pressure = 3e-3; };
           break;
         case "Plasma strike":
           s.enter = function () { tryStrike(true); };
           s.done = function () { return m.plasmaOn && m.powerPV > s.strikePowerMin; };
+          s.force = function () {
+            if (m.pressure < 1e-3 || m.pressure > 2e-2) m.pressure = 3e-3;
+            setPlasma(true);
+            m.powerPV = Math.max(s.strikePowerMin + 1, m.powerSP);
+          };
           break;
         case "Pre-sputter":
           s.enter = function () { setShutter(false); };
           s.done = function (dt) { return dt >= s.dwell; };
+          s.force = function () { m.seq.stepT = s.dwell; };
           break;
         case "Deposit":
           s.enter = function () { setShutter(true); };
           s.done = function () { return m.thick >= m.target; };
+          s.force = function () { m.thick = m.target; };
           break;
         case "Shutdown & vent":
           s.enter = function () { setPlasma(false); setFlowSP(0); };
           s.done = function () {
             if (m.powerPV <= 5 && !m.vVent && m.pressure < 1e-4) { setValve("v-gas", false); setValve("v-gate", false); setValve("v-vent", true); }
             return m.pressure > 900;
+          };
+          s.force = function () {
+            m.plasmaOn = false; m.powerPV = 0; m.flowPV = 0;
+            setValve("v-gas", false); setValve("v-gate", false); setValve("v-vent", true);
+            m.pressure = 900;
           };
           break;
       }
