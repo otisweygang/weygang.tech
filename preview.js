@@ -132,9 +132,14 @@
     const deskWidth = config.desktopWidth || 1440;
     const deskHeight = config.desktopHeight || 900;
     const url = escapeHtml(project.url);
+    const hasSource = !!project.repo;
 
     body.innerHTML =
-      `<div class="preview-site">` +
+      `<div class="preview-tabs">` +
+      `<button class="preview-tab is-active" data-pane="site">preview</button>` +
+      `<button class="preview-tab" data-pane="source">source</button>` +
+      `</div>` +
+      `<div class="preview-pane is-active" id="pane-site">` +
       `<div class="preview-screen">` +
       `<div class="preview-scaler">` +
       `<iframe class="preview-frame" referrerpolicy="no-referrer" src="${url}"></iframe>` +
@@ -144,19 +149,21 @@
       `</div>` +
       `</div>` +
       `</div>` +
-      `<div class="preview-source">` +
-      `<div class="preview-source-body" id="preview-source-body"></div>` +
-      `</div>`;
+      `<div class="preview-pane" id="pane-source"></div>`;
 
     const screen = body.querySelector(".preview-screen");
     const scaler = body.querySelector(".preview-scaler");
-    scaler.style.width = deskWidth + "px";
-    scaler.style.height = deskHeight + "px";
 
     const fit = () => {
-      const scale = screen.clientWidth / deskWidth;
-      scaler.style.transform = `scale(${scale})`;
-      screen.style.height = deskHeight * scale + "px";
+      const avail = screen.clientWidth - 40;
+      const scale = Math.min(avail / deskWidth, 1);
+      scaler.style.width = deskWidth * scale + "px";
+      scaler.style.height = deskHeight * scale + "px";
+      const inner = scaler.firstElementChild;
+      inner.style.width = deskWidth + "px";
+      inner.style.height = deskHeight + "px";
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = "top left";
     };
     fit();
     new ResizeObserver(fit).observe(screen);
@@ -188,11 +195,29 @@
 
     timer = setTimeout(showFallback, 8000);
 
-    const sourceBody = document.getElementById("preview-source-body");
-    if (project.repo) {
-      renderRepo(project.repo, sourceBody);
-    } else {
-      sourceBody.innerHTML = `<div class="preview-message"><p>${escapeHtml(config.noRepo)}</p></div>`;
+    let sourceLoaded = false;
+    const loadSource = () => {
+      if (sourceLoaded) return;
+      sourceLoaded = true;
+      const pane = body.querySelector("#pane-source");
+      if (hasSource) {
+        renderRepo(project.repo, pane);
+      } else {
+        pane.innerHTML = `<div class="preview-message"><p>${escapeHtml(config.noRepo)}</p></div>`;
+      }
+    };
+
+    const tabs = body.querySelectorAll(".preview-tab");
+    for (const tab of tabs) {
+      tab.addEventListener("click", () => {
+        for (const other of tabs) other.classList.remove("is-active");
+        tab.classList.add("is-active");
+        for (const pane of body.querySelectorAll(".preview-pane")) {
+          pane.classList.toggle("is-active", pane.id === `pane-${tab.dataset.pane}`);
+        }
+        if (tab.dataset.pane === "source") loadSource();
+        if (tab.dataset.pane === "site") fit();
+      });
     }
   }
 

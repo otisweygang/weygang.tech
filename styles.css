@@ -536,7 +536,7 @@ button {
   right: 0;
   bottom: 0;
   z-index: 21;
-  width: min(680px, 92vw);
+  width: clamp(680px, 50vw, 1100px);
   display: flex;
   flex-direction: column;
   background: var(--bg-soft);
@@ -612,16 +612,17 @@ button {
   background: #fff;
 }
 
-.preview-site {
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--hair);
-  background: #fff;
-}
-
 .preview-screen {
   position: relative;
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
 }
 
 .preview-loading {
@@ -650,28 +651,15 @@ button {
 }
 
 .preview-scaler {
-  transform-origin: top left;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
 .preview-scaler .preview-frame {
   display: block;
-  width: 100%;
-  height: 100%;
   flex: none;
-}
-
-.preview-source {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.preview-source-body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 .preview-pdf {
@@ -962,7 +950,7 @@ button {
   display: none !important;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 900px) {
   .preview {
     width: 100vw;
   }
