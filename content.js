@@ -84,7 +84,7 @@ window.siteContent = {
     closeLabel: "×",
     downloadLabel: "download",
     loading: "loading…",
-    websiteBlocked: "this site won't load inside a frame.",
+    websiteBlocked: "preview didn't load — slow connection, or the site blocks framing.",
     noRepo: "source not published for this one.",
     repoRoot: "root",
     repoErrors: {

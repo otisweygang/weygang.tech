@@ -619,8 +619,34 @@ button {
 }
 
 .preview-screen {
+  position: relative;
   width: 100%;
   overflow: hidden;
+}
+
+.preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff;
+  color: var(--ink-dim);
+  font-size: 0.8rem;
+}
+
+.preview-loading-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  animation: preview-pulse 1s ease-in-out infinite;
+}
+
+@keyframes preview-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
 }
 
 .preview-scaler {

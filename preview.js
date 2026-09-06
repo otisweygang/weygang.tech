@@ -131,12 +131,16 @@
   function renderWebsite(project) {
     const deskWidth = config.desktopWidth || 1440;
     const deskHeight = config.desktopHeight || 900;
+    const url = escapeHtml(project.url);
 
     body.innerHTML =
       `<div class="preview-site">` +
       `<div class="preview-screen">` +
       `<div class="preview-scaler">` +
-      `<iframe class="preview-frame" referrerpolicy="no-referrer" src="${escapeHtml(project.url)}"></iframe>` +
+      `<iframe class="preview-frame" referrerpolicy="no-referrer" src="${url}"></iframe>` +
+      `</div>` +
+      `<div class="preview-loading" id="preview-loading">` +
+      `<span class="preview-loading-dot"></span>${escapeHtml(config.loading)}` +
       `</div>` +
       `</div>` +
       `</div>` +
@@ -157,20 +161,32 @@
     fit();
     new ResizeObserver(fit).observe(screen);
 
+    let timer = null;
     const frame = body.querySelector(".preview-frame");
-    let loaded = false;
-    frame.addEventListener("load", () => {
-      loaded = true;
-    });
-    setTimeout(() => {
-      if (!loaded) {
-        screen.innerHTML =
-          `<div class="preview-message">` +
-          `<p>${escapeHtml(config.websiteBlocked)}</p>` +
-          `<a href="${escapeHtml(project.url)}" target="_blank" rel="noopener">${escapeHtml(config.openLabel)}</a>` +
-          `</div>`;
+
+    const showFallback = () => {
+      screen.innerHTML =
+        `<div class="preview-message">` +
+        `<p>${escapeHtml(config.websiteBlocked)}</p>` +
+        `<p><a href="${url}" target="_blank" rel="noopener">${escapeHtml(config.openLabel)}</a>` +
+        ` &nbsp; <a href="#" class="preview-retry">retry</a></p>` +
+        `</div>`;
+      const retry = screen.querySelector(".preview-retry");
+      if (retry) {
+        retry.addEventListener("click", (event) => {
+          event.preventDefault();
+          renderWebsite(project);
+        });
       }
-    }, 2500);
+    };
+
+    frame.addEventListener("load", () => {
+      if (timer) clearTimeout(timer);
+      const overlay = document.getElementById("preview-loading");
+      if (overlay) overlay.remove();
+    });
+
+    timer = setTimeout(showFallback, 8000);
 
     const sourceBody = document.getElementById("preview-source-body");
     if (project.repo) {
