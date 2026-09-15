@@ -24,10 +24,21 @@
       <span class="brand">WEYGANG<span class="blink">_</span></span>
       <span class="header-actions">
         <button id="help-button" type="button">[help]</button>
+        <button id="layout-button" type="button">[gallery]</button>
       </span>
     </header>
 
     <main class="terminal" id="terminal"></main>
+  </div>
+
+  <div class="gallery" id="gallery" hidden>
+    <header class="header gallery-header">
+      <span class="brand">WEYGANG<span class="blink">_</span></span>
+      <span class="header-actions" id="header-actions-gallery">
+        <button id="layout-button-gallery" type="button">[terminal]</button>
+      </span>
+    </header>
+    <div class="gallery-body" id="gallery-body"></div>
   </div>
 
   <div class="preview-backdrop" id="preview-backdrop" hidden></div>
@@ -68,6 +79,7 @@
   <script src="./demos/urlstatuscheck.js"></script>
   <script src="./demo.js"></script>
   <script src="./preview.js"></script>
+  <script src="./gallery.js"></script>
   <script src="./main.js"></script>
 </body>
 </html>

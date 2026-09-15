@@ -27,6 +27,12 @@ function fill(template, values) {
   return template.replace(/\{(\w+)\}/g, (match, key) => (key in values ? values[key] : match));
 }
 
+function stackTagClass(tag) {
+  const slug = (content.stackColors && content.stackColors[tag]) || tag.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return `stack-tag-${slug}`;
+}
+window.stackTagClass = stackTagClass;
+
 function findProject(name) {
   return projects.find((project) => project.name === name);
 }
@@ -133,6 +139,7 @@ const commandHandlers = {
 
   ls(term) {
     const nameWidth = Math.max(...projects.map((project) => project.name.length)) + 2;
+    const descWidth = Math.max(...projects.map((project) => project.description.length)) + 2;
     const categories = projectCategories();
     for (const category of categories) {
       const members = projects.filter((project) => project.category === category.name);
@@ -142,11 +149,14 @@ const commandHandlers = {
       const label = (content.categories && content.categories[category.name]) || category.name;
       term.print("  " + label.toUpperCase(), "accent");
       for (const project of members) {
+        const stackHtml = project.stack
+          ? "[" + project.stack.map((tag) => `<span class="stack-tag ${stackTagClass(tag)}">${escapeHtml(tag)}</span>`).join(", ") + "]"
+          : "";
         term.printHtml(
-          `<span class="ls-row">` +
+          `<span class="ls-row" style="grid-template-columns: ${nameWidth}ch ${descWidth}ch auto">` +
             `<button class="inline-link" data-open="${project.name}">${escapeHtml(project.name)}</button>` +
-            `<span class="ls-pad">${" ".repeat(nameWidth - project.name.length)}</span>` +
             `<span class="faint ls-desc">${escapeHtml(project.description)}</span>` +
+            `<span class="ls-stack">${stackHtml}</span>` +
             `</span>`,
           "ls-entry",
         );
@@ -181,7 +191,10 @@ const commandHandlers = {
       term.print(fill(content.messages.catNotFound, { name }), "rose");
       return;
     }
-    term.print(project.description, "dim");
+    const stackHtml = project.stack
+      ? "  [" + project.stack.map((tag) => `<span class="stack-tag ${stackTagClass(tag)}">${escapeHtml(tag)}</span>`).join(", ") + "]"
+      : "";
+    term.printHtml(escapeHtml(project.description) + stackHtml, "dim");
     term.printLink(project.url, project.url);
   },
 
@@ -300,10 +313,7 @@ const commands = content.commands.map((entry) => ({
 }));
 
 
-function buildHeader() {
-  const brandEl = document.querySelector(".brand");
-  brandEl.firstChild.textContent = content.brand;
-  const actions = document.querySelector(".header-actions");
+function buildHeaderLinks(actions) {
   for (const link of content.headerLinks) {
     const anchor = document.createElement("a");
     anchor.href = link.url;
@@ -312,6 +322,13 @@ function buildHeader() {
     anchor.textContent = link.label;
     actions.appendChild(anchor);
   }
+}
+
+function buildHeader() {
+  const brandEl = document.querySelector(".brand");
+  brandEl.firstChild.textContent = content.brand;
+  buildHeaderLinks(document.querySelector(".header-actions"));
+  buildHeaderLinks(document.getElementById("header-actions-gallery"));
 }
 
 
@@ -784,6 +801,47 @@ function loadSavedTheme() {
 }
 
 
+const galleryEl = document.getElementById("gallery");
+const crtEl = document.querySelector(".crt");
+const layoutButtons = [
+  document.getElementById("layout-button"),
+  document.getElementById("layout-button-gallery"),
+];
+
+function setLayout(next) {
+  const isGallery = next === "gallery";
+  crtEl.hidden = isGallery;
+  galleryEl.hidden = !isGallery;
+  for (const button of layoutButtons) {
+    button.textContent = isGallery ? "[terminal]" : "[gallery]";
+  }
+  if (isGallery) {
+    window.gallery.render();
+  } else {
+    focusPrompt();
+  }
+  try {
+    localStorage.setItem(content.layoutStorageKey, next);
+  } catch (error) {
+    // localStorage unavailable, layout just won't persist
+  }
+}
+
+function toggleLayout() {
+  setLayout(galleryEl.hidden ? "gallery" : "terminal");
+}
+
+function loadSavedLayout() {
+  let saved = "terminal";
+  try {
+    saved = localStorage.getItem(content.layoutStorageKey) || "terminal";
+  } catch (error) {
+    // localStorage unavailable, use the default layout
+  }
+  setLayout(saved);
+}
+
+
 const konamiSequence = [
   "ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown",
   "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight",
@@ -817,9 +875,13 @@ function openProjectPreview(project) {
   document.body.classList.add("preview-active");
   window.preview.open(project, () => {
     document.body.classList.remove("preview-active");
+    if (galleryEl.hidden === false) {
+      return;
+    }
     focusPrompt();
   });
 }
+window.openProjectPreview = openProjectPreview;
 
 function onTerminalClick(event) {
   const openButton = event.target.closest("[data-open]");
@@ -849,12 +911,16 @@ function start() {
   buildHelpPanel();
 
   terminalEl.addEventListener("click", onTerminalClick);
+  for (const button of layoutButtons) {
+    button.addEventListener("click", toggleLayout);
+  }
   window.addEventListener("keydown", onKonamiKey);
   window.addEventListener("resize", () => {
     resizeStarfield();
     seedStars();
   });
 
+  loadSavedLayout();
   runBootSequence();
 }
 

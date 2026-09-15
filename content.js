@@ -16,47 +16,54 @@ window.siteContent = {
     {
       name: "icahd.org",
       category: "websites",
-      description: "Human rights landing site  [Astro, TS, HTML, CSS]",
+      description: "Human rights landing site",
+      stack: ["Astro", "TS", "HTML", "CSS"],
       url: "https://icahd.org",
     },
     {
       name: "78years.com",
       category: "websites",
-      description: "Feature film landing site  [JS, HTML, CSS]",
+      description: "Feature film landing site",
+      stack: ["JS", "HTML", "CSS"],
       url: "https://78years.com",
       repo: "otisweygang/atta",
     },
     {
       name: "calmergames.com",
       category: "websites",
-      description: "Games site  [JS, HTML, CSS]",
+      description: "Games site",
+      stack: ["JS", "HTML", "CSS"],
       url: "https://calmergames.com",
     },
     {
       name: "bonezbizarre.com",
       category: "websites",
-      description: "Static artist portfolio  [JS, HTML, CSS]",
+      description: "Static artist portfolio",
+      stack: ["JS", "HTML", "CSS"],
       url: "https://bonezbizarre.com",
       repo: "otisweygang/bonez",
     },
     {
       name: "mamba-uk.com",
       category: "websites",
-      description: "Static artist portfolio  [JS, HTML, CSS]",
+      description: "Static artist portfolio",
+      stack: ["JS", "HTML", "CSS"],
       url: "https://mamba-uk.com",
       repo: "otisweygang/mamba",
     },
     {
       name: "urlstatuscheck",
       category: "projects",
-      description: "Concurrent URL health checker  [Go, CLI, stdlib]",
+      description: "Concurrent URL health checker",
+      stack: ["Go"],
       url: "https://github.com/otisweygang/siteprobe",
       preview: { kind: "repo", repo: "otisweygang/siteprobe" },
     },
     {
       name: "minilab-demo",
       category: "projects",
-      description: "PVD control HMI simulator  [JS, HTML, CSS]",
+      description: "PVD control HMI simulator",
+      stack: ["JS", "HTML", "CSS"],
       url: "./demos/minilab/index.html",
       repo: "otisweygang/minilab-demo",
     },
@@ -82,6 +89,22 @@ window.siteContent = {
 
   themes: ["green", "amber", "paper"],
   themeStorageKey: "test-theme",
+
+  layouts: ["terminal", "gallery"],
+  layoutStorageKey: "test-layout",
+
+  stackColors: {
+    JS: "js",
+    TS: "ts",
+    Astro: "astro",
+    HTML: "html",
+    CSS: "css",
+    Go: "go",
+  },
+
+  gallery: {
+    openLabel: "view",
+  },
 
   preview: {
     desktopWidth: 1440,
