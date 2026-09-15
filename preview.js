@@ -129,10 +129,9 @@
 
 
   function renderWebsite(project) {
-    const deskWidth = config.desktopWidth || 1440;
-    const deskHeight = config.desktopHeight || 900;
     const url = escapeHtml(project.url);
     const hasSource = !!project.repo;
+    const hasScreenshot = !!project.screenshot;
 
     body.innerHTML =
       `<div class="preview-tabs">` +
@@ -140,60 +139,25 @@
       `<button class="preview-tab" data-pane="source">source</button>` +
       `</div>` +
       `<div class="preview-pane is-active" id="pane-site">` +
-      `<div class="preview-screen">` +
-      `<div class="preview-scaler">` +
-      `<iframe class="preview-frame" referrerpolicy="no-referrer" src="${url}"></iframe>` +
-      `</div>` +
-      `<div class="preview-loading" id="preview-loading">` +
-      `<span class="preview-loading-dot"></span>${escapeHtml(config.loading)}` +
-      `</div>` +
-      `</div>` +
+      `<div class="preview-screen"></div>` +
       `</div>` +
       `<div class="preview-pane" id="pane-source"></div>`;
 
     const screen = body.querySelector(".preview-screen");
-    const scaler = body.querySelector(".preview-scaler");
 
-    const fit = () => {
-      const avail = screen.clientWidth - 40;
-      const scale = Math.min(avail / deskWidth, 1);
-      scaler.style.width = deskWidth * scale + "px";
-      scaler.style.height = deskHeight * scale + "px";
-      const inner = scaler.firstElementChild;
-      inner.style.width = deskWidth + "px";
-      inner.style.height = deskHeight + "px";
-      inner.style.transform = `scale(${scale})`;
-      inner.style.transformOrigin = "top left";
-    };
-    fit();
-    new ResizeObserver(fit).observe(screen);
-
-    let timer = null;
-    const frame = body.querySelector(".preview-frame");
-
-    const showFallback = () => {
+    if (hasScreenshot) {
+      screen.innerHTML =
+        `<a class="preview-shot-link" href="${url}" target="_blank" rel="noopener">` +
+        `<img class="preview-shot" src="${escapeHtml(project.screenshot)}" alt="Screenshot of ${escapeHtml(project.name)}" loading="lazy" />` +
+        `<span class="preview-shot-hint">${escapeHtml(config.openLabel)}</span>` +
+        `</a>`;
+    } else {
       screen.innerHTML =
         `<div class="preview-message">` +
-        `<p>${escapeHtml(config.websiteBlocked)}</p>` +
-        `<p><a href="${url}" target="_blank" rel="noopener">${escapeHtml(config.openLabel)}</a>` +
-        ` &nbsp; <a href="#" class="preview-retry">retry</a></p>` +
+        `<p>${escapeHtml(config.noScreenshot)}</p>` +
+        `<a href="${url}" target="_blank" rel="noopener">${escapeHtml(config.openLabel)}</a>` +
         `</div>`;
-      const retry = screen.querySelector(".preview-retry");
-      if (retry) {
-        retry.addEventListener("click", (event) => {
-          event.preventDefault();
-          renderWebsite(project);
-        });
-      }
-    };
-
-    frame.addEventListener("load", () => {
-      if (timer) clearTimeout(timer);
-      const overlay = document.getElementById("preview-loading");
-      if (overlay) overlay.remove();
-    });
-
-    timer = setTimeout(showFallback, 8000);
+    }
 
     let sourceLoaded = false;
     const loadSource = () => {
@@ -216,7 +180,6 @@
           pane.classList.toggle("is-active", pane.id === `pane-${tab.dataset.pane}`);
         }
         if (tab.dataset.pane === "source") loadSource();
-        if (tab.dataset.pane === "site") fit();
       });
     }
   }

@@ -601,41 +601,38 @@ button {
   background: var(--bg);
 }
 
-.preview-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: #fff;
-  color: var(--ink-dim);
-  font-size: 0.8rem;
-}
-
-.preview-loading-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent-2);
-  animation: preview-pulse 1s ease-in-out infinite;
-}
-
-@keyframes preview-pulse {
-  0%, 100% { opacity: 0.25; }
-  50% { opacity: 1; }
-}
-
-.preview-scaler {
-  flex-shrink: 0;
+.preview-shot-link {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
   overflow: hidden;
-  background: #fff;
+  border-radius: 4px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
-.preview-scaler .preview-frame {
+.preview-shot {
   display: block;
-  flex: none;
+  max-width: 100%;
+  max-height: 70vh;
+  width: auto;
+  height: auto;
+}
+
+.preview-shot-hint {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 10px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+  color: #fff;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.preview-shot-link:hover .preview-shot-hint,
+.preview-shot-link:focus-visible .preview-shot-hint {
+  opacity: 1;
 }
 
 .preview-pdf {

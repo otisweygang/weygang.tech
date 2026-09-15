@@ -19,6 +19,7 @@ window.siteContent = {
       description: "International Coalition Against Housing Destruction",
       stack: ["Astro", "TS", "HTML", "CSS"],
       url: "https://icahd.org",
+      screenshot: "./assets/previews/icahd.webp",
     },
     {
       name: "78years.com",
@@ -27,6 +28,7 @@ window.siteContent = {
       stack: ["JS", "HTML", "CSS"],
       url: "https://78years.com",
       repo: "otisweygang/78years",
+      screenshot: "./assets/previews/78years.webp",
     },
     {
       name: "calmergames.com",
@@ -35,6 +37,7 @@ window.siteContent = {
       stack: ["JS", "HTML", "CSS"],
       url: "https://calmergames.com",
       repo: "otisweygang/calmer-games",
+      screenshot: "./assets/previews/calmergames.webp",
     },
     {
       name: "bonezbizarre.com",
@@ -43,6 +46,7 @@ window.siteContent = {
       stack: ["JS", "HTML", "CSS"],
       url: "https://bonezbizarre.com",
       repo: "otisweygang/bonez",
+      screenshot: "./assets/previews/bonezbizarre.webp",
     },
     {
       name: "mamba-uk.com",
@@ -51,6 +55,7 @@ window.siteContent = {
       stack: ["JS", "HTML", "CSS"],
       url: "https://mamba-uk.com",
       repo: "otisweygang/mamba",
+      screenshot: "./assets/previews/mamba-uk.webp",
     },
     {
       name: "urlstatuscheck",
@@ -67,6 +72,7 @@ window.siteContent = {
       stack: ["JS", "HTML", "CSS"],
       url: "./demos/minilab/index.html",
       repo: "otisweygang/minilab-demo",
+      screenshot: "./assets/previews/minilab-demo.webp",
     },
     {
       name: "CV",
@@ -110,13 +116,11 @@ window.siteContent = {
   },
 
   preview: {
-    desktopWidth: 1440,
-    desktopHeight: 900,
     openLabel: "open ↗",
     closeLabel: "×",
     downloadLabel: "download",
     loading: "loading…",
-    websiteBlocked: "couldn't load the preview.",
+    noScreenshot: "no preview available for this one.",
     noRepo: "source not published for this one.",
     repoRoot: "root",
     repoErrors: {
