@@ -3,7 +3,7 @@
   const config = content.gallery;
 
   const galleryEl = document.getElementById("gallery");
-  const bodyEl = document.getElementById("gallery-body");
+  const bodyEl = document.getElementById("gallery-inner");
 
   function escapeHtml(text) {
     return String(text)

@@ -51,7 +51,7 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background: radial-gradient(120% 120% at 50% 0%, var(--bg-soft), var(--bg) 70%);
   color: var(--ink);
   font-family: var(--mono);
   font-size: clamp(11px, 2.6vw, 15px);
@@ -83,7 +83,6 @@ button {
   display: flex;
   flex-direction: column;
   padding: clamp(10px, 3vw, 34px);
-  background: radial-gradient(120% 120% at 50% 0%, var(--bg-soft), var(--bg) 70%);
 }
 
 .crt::before {
@@ -120,37 +119,8 @@ button {
   box-shadow: none;
 }
 
-.crt-sweep {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 140px;
-  z-index: 7;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(53, 255, 135, 0.05),
-    transparent
-  );
-  animation: sweep 7s linear infinite;
-}
-
-:root[data-theme="paper"] .crt-sweep {
-  display: none;
-}
-
-@keyframes sweep {
-  from {
-    transform: translateY(-160px);
-  }
-  to {
-    transform: translateY(110vh);
-  }
-}
-
 .starfield {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
   opacity: 0.5;
@@ -245,7 +215,7 @@ button {
 .ls-row {
   display: grid;
   column-gap: 1ch;
-  align-items: baseline;
+  align-items: start;
 }
 
 .ls-row .inline-link {
@@ -279,6 +249,10 @@ button {
 
 .stack-tag-go {
   color: var(--accent);
+}
+
+.stack-tag-pdf {
+  color: var(--amber);
 }
 
 @media (max-width: 500px) {
@@ -957,8 +931,7 @@ button {
   inset: 0;
   display: flex;
   flex-direction: column;
-  padding: clamp(10px, 3vw, 34px);
-  background: radial-gradient(120% 120% at 50% 0%, var(--bg-soft), var(--bg) 70%);
+  padding-top: clamp(10px, 3vw, 34px);
   color: var(--ink);
   font-family: var(--mono);
   font-size: clamp(11px, 2.6vw, 15px);
@@ -966,14 +939,29 @@ button {
 
 .gallery-header {
   flex-shrink: 0;
+  padding-left: clamp(10px, 3vw, 34px);
+  padding-right: clamp(10px, 3vw, 34px);
 }
 
 .gallery-body {
   overflow-y: auto;
-  padding-top: 32px;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair) transparent;
+}
+
+.gallery-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gallery-body::-webkit-scrollbar-thumb {
+  background: var(--hair);
+}
+
+.gallery-inner {
+  padding: 32px clamp(10px, 3vw, 34px) clamp(10px, 3vw, 34px);
   max-width: 1200px;
   margin: 0 auto;
-  width: 100%;
 }
 
 .gallery-section + .gallery-section {
@@ -1126,7 +1114,6 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .crt-sweep,
   .blink,
   .preview,
   .preview-backdrop,

@@ -34,7 +34,8 @@ function stackTagClass(tag) {
 window.stackTagClass = stackTagClass;
 
 function findProject(name) {
-  return projects.find((project) => project.name === name);
+  const target = name.toLowerCase();
+  return projects.find((project) => project.name.toLowerCase() === target);
 }
 
 function projectCategories() {
@@ -139,7 +140,7 @@ const commandHandlers = {
 
   ls(term) {
     const nameWidth = Math.max(...projects.map((project) => project.name.length)) + 2;
-    const descWidth = Math.max(...projects.map((project) => project.description.length)) + 2;
+    const descWidth = Math.min(28, Math.max(...projects.map((project) => project.description.length)) + 2);
     const categories = projectCategories();
     for (const category of categories) {
       const members = projects.filter((project) => project.category === category.name);
