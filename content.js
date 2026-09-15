@@ -150,7 +150,7 @@ window.siteContent = {
     { name: "pwd", summary: "print the current path", chip: true },
     { name: "echo", summary: "say it back", chip: true, chipText: "echo hello" },
     { name: "date", summary: "current time, UTC", chip: true },
-    { name: "theme", summary: "cycle green / amber / paper", chip: true },
+    { name: "theme", summary: "set or cycle green / amber / paper", chip: true, chipText: "theme amber" },
     { name: "stars", summary: "set starfield density", chip: true, chipText: "stars 500" },
     { name: "matrix", summary: "you already know", chip: true },
     { name: "crash", summary: "trigger a totally real system failure", chip: true },

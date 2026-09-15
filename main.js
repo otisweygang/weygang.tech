@@ -211,8 +211,17 @@ const commandHandlers = {
     term.print(new Date().toUTCString());
   },
 
-  theme(term) {
-    cycleTheme();
+  theme(term, args) {
+    const requested = args[0] && args[0].toLowerCase();
+    if (requested) {
+      if (!themes.includes(requested)) {
+        term.print(`theme: unknown phosphor "${requested}" (try ${themes.join(", ")})`, "rose");
+        return;
+      }
+      setTheme(requested);
+    } else {
+      cycleTheme();
+    }
     term.print(`phosphor: ${root.dataset.theme || "green"}`, "accent");
   },
 
@@ -744,9 +753,7 @@ function showCrash() {
 }
 
 
-function cycleTheme() {
-  const current = root.dataset.theme || "green";
-  const next = themes[(themes.indexOf(current) + 1) % themes.length];
+function setTheme(next) {
   if (next === "green") {
     delete root.dataset.theme;
   } else {
@@ -757,6 +764,12 @@ function cycleTheme() {
   } catch (error) {
     // localStorage unavailable, theme just won't persist
   }
+}
+
+function cycleTheme() {
+  const current = root.dataset.theme || "green";
+  const next = themes[(themes.indexOf(current) + 1) % themes.length];
+  setTheme(next);
 }
 
 function loadSavedTheme() {
@@ -836,7 +849,6 @@ function start() {
   buildHelpPanel();
 
   terminalEl.addEventListener("click", onTerminalClick);
-  document.getElementById("theme-button").addEventListener("click", cycleTheme);
   window.addEventListener("keydown", onKonamiKey);
   window.addEventListener("resize", () => {
     resizeStarfield();
