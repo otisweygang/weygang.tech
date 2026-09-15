@@ -20,11 +20,17 @@ window.siteContent = {
       url: "https://icahd.org",
     },
     {
-      name: "thegentlehand.netlify.app",
+      name: "78years.com",
       category: "websites",
       description: "Feature film landing site  [JS, HTML, CSS]",
-      url: "https://thegentlehand.netlify.app",
+      url: "https://78years.com",
       repo: "otisweygang/atta",
+    },
+    {
+      name: "calmergames.com",
+      category: "websites",
+      description: "Games site  [JS, HTML, CSS]",
+      url: "https://calmergames.com",
     },
     {
       name: "bonezbizarre.com",
@@ -96,8 +102,6 @@ window.siteContent = {
   },
 
   boot: {
-    detecting: "Loading portfolio...",
-    barDuration: 210,
     bannerArt: [
   "██╗    ██╗███████╗██╗   ██╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ ",
   "██║    ██║██╔════╝╚██╗ ██╔╝██╔════╝ ██╔══██╗████╗  ██║██╔════╝ ",
@@ -151,7 +155,6 @@ window.siteContent = {
     { name: "matrix", summary: "you already know", chip: true },
     { name: "crash", summary: "trigger a totally real system failure", chip: true },
     { name: "clear", summary: "wipe the screen (or Ctrl-L)", chip: true },
-    { name: "reboot", summary: "replay the boot sequence", chip: true },
     {
       name: "sudo",
       summary: "you are not root",

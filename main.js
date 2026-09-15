@@ -109,25 +109,6 @@ const terminal = {
     return row;
   },
 
-  async progressBar(label, duration, fillRatio = 1, endText = null) {
-    const narrow = window.innerWidth < 500;
-    const width = narrow ? 12 : 24;
-    const labelWidth = narrow ? 14 : 22;
-    const steps = 20;
-    const row = this.print("", "bar");
-    for (let step = 0; step <= steps; step += 1) {
-      const progress = step / steps;
-      const filled = Math.round(progress * fillRatio * width);
-      const trailing = endText === null
-        ? `${String(Math.round(progress * 100)).padStart(3)}%`
-        : endText;
-      row.innerHTML =
-        label.padEnd(labelWidth, " ") +
-        `[<span class="bar-fill">${"#".repeat(filled)}</span>${"-".repeat(width - filled)}] ${trailing}`;
-      this.scrollToBottom();
-      await wait(duration / steps);
-    }
-  },
 };
 
 
@@ -257,10 +238,6 @@ const commandHandlers = {
 
   clear(term) {
     term.clear();
-  },
-
-  reboot() {
-    runBootSequence();
   },
 
   sudo(term, args, command) {
@@ -621,23 +598,6 @@ async function runBootSequence() {
   }
   terminal.print("");
   await wait(200);
-  await terminal.typeLine(boot.detecting, "dim");
-  await wait(220);
-  const categories = projectCategories();
-  const largest = Math.max(1, ...categories.map((category) => category.count));
-  const labelWidth = window.innerWidth < 500 ? 14 : 22;
-  for (const category of categories) {
-    const label = "  " + category.name;
-    if (category.name === "websites") {
-      const countText = `${category.count} item${category.count === 1 ? "" : "s"}`;
-      await terminal.progressBar(label, boot.barDuration, category.count / largest, countText);
-    } else {
-      terminal.print(label.padEnd(labelWidth, " ") + "[ ok ]", "dim");
-      await wait(boot.barDuration);
-    }
-  }
-  terminal.print("");
-  await wait(100);
   terminal.print(boot.ready, "dim");
   terminal.print("");
 
@@ -877,7 +837,6 @@ function start() {
 
   terminalEl.addEventListener("click", onTerminalClick);
   document.getElementById("theme-button").addEventListener("click", cycleTheme);
-  document.getElementById("reboot-button").addEventListener("click", runBootSequence);
   window.addEventListener("keydown", onKonamiKey);
   window.addEventListener("resize", () => {
     resizeStarfield();
